@@ -1,0 +1,2596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Interactive Hertzsprung-Russell Diagram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #141928;
+  --surface-alt: #1c2338;
+  --surface-hi: #252d45;
+  --border: #2a3148;
+  --border-bright: #3a4265;
+  --text: #e8e6e1;
+  --text-muted: #8a91a5;
+  --text-dim: #5c6378;
+  --accent: #ffd060;
+  --accent-soft: #ffe8a8;
+  --accent-dim: #8b6f2e;
+  --info: #7aa8ff;
+  --success: #6ee69e;
+  --danger: #ff6b6b;
+  --ms-color: rgba(255, 255, 200, 0.2);
+  --rg-color: rgba(255, 140, 80, 0.18);
+  --sg-color: rgba(255, 200, 220, 0.15);
+  --wd-color: rgba(160, 200, 255, 0.18);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Public Sans', -apple-system, sans-serif;
+  min-height: 100vh;
+  font-size: 15px;
+  background:
+    radial-gradient(ellipse at top, #0f1528 0%, #0a0e1a 60%),
+    var(--bg);
+}
+
+.app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand h1 {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+}
+
+.brand .subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-left: 0.75rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1.25rem;
+}
+
+.diagram-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.25rem;
+  position: relative;
+}
+
+#hrCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#hrCanvas.dragging { cursor: grabbing; }
+
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.25rem;
+}
+
+.card h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 1.05rem;
+  margin-bottom: 0.85rem;
+  color: var(--accent-soft);
+}
+
+.props {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.prop {
+  background: var(--surface-alt);
+  padding: 0.7rem 0.85rem;
+  border-radius: 4px;
+}
+
+.prop .label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prop .value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.05rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.prop .unit {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-left: 0.25rem;
+}
+
+.region-tag {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 0.3rem 0.7rem;
+  border-radius: 3px;
+  background: var(--surface-alt);
+  color: var(--text);
+  border-left: 2px solid var(--accent);
+  margin-top: 0.5rem;
+}
+
+.region-tag.main-sequence { border-left-color: #fff5dc; }
+.region-tag.red-giant { border-left-color: #ffaa6e; }
+.region-tag.supergiant { border-left-color: #dcc3f5; }
+.region-tag.white-dwarf { border-left-color: #b4d7ff; }
+.region-tag.gap { border-left-color: var(--text-dim); color: var(--text-muted); }
+
+.size-viz {
+  background: var(--surface-alt);
+  padding: 1rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  position: relative;
+  overflow: hidden;
+}
+
+#sizeCanvas {
+  display: block;
+  max-width: 100%;
+  width: 320px;
+  height: 140px;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+@media (max-width: 400px) {
+  #sizeCanvas { width: 100%; height: auto; aspect-ratio: 320 / 140; }
+}
+
+.size-caption {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.75rem;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+button {
+  background: var(--surface-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 0.65rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(255, 208, 96, 0.2);
+}
+
+@media (hover: hover) {
+  button:hover { background: var(--surface-hi); border-color: var(--border-bright); }
+}
+
+button:active { background: var(--surface-hi); border-color: var(--accent); }
+
+button.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  font-weight: 500;
+}
+
+button.preset {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+}
+
+.callout {
+  background: var(--surface-alt);
+  border-left: 2px solid var(--accent);
+  padding: 0.7rem 0.9rem;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text);
+  margin-top: 0.75rem;
+}
+
+.callout strong { color: var(--accent-soft); font-weight: 500; }
+
+.toggles {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+
+@media (max-width: 900px) {
+  .app { padding: 1rem; }
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  /* On smaller screens, show the most important info card (Your star) ABOVE the canvas
+     so students can see live values updating as they drag. */
+  .side-panel {
+    display: contents;
+  }
+  /* Re-order: properties first, then canvas, then size-viz, then presets */
+  .diagram-panel { order: 2; }
+  .side-panel > .card:nth-of-type(1) { order: 1; }
+  .side-panel > .card:nth-of-type(2) { order: 3; }
+  .side-panel > .card:nth-of-type(3) { order: 4; }
+  /* Three-column properties grid on tablets */
+  .props { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 700px) {
+  .app { padding: 0.6rem; }
+  .props { grid-template-columns: repeat(2, 1fr); }
+  header { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+  .brand h1 { font-size: 1.1rem; }
+}
+
+/* Prevent iOS Safari elastic scroll when interacting with full-screen content */
+html, body {
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ===== Mode tabs ===== */
+.mode-tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--surface);
+  padding: 0.25rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.mode-tabs button {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8rem;
+  min-height: 36px;
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+.mode-tabs button.active {
+  background: var(--surface-hi);
+  color: var(--accent-soft);
+  border-color: var(--border-bright);
+}
+
+@media (max-width: 700px) {
+  .mode-tabs { width: 100%; }
+  .mode-tabs button { flex: 1; min-width: 0; padding: 0.4rem 0.4rem; font-size: 0.72rem; }
+}
+
+/* ===== Mass selector / lifecycle bar ===== */
+.lifecycle-bar {
+  margin-bottom: 0.85rem;
+}
+
+.mass-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ms-label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-right: 0.25rem;
+}
+
+.mass-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 0.5rem 0.85rem;
+  line-height: 1.2;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88rem;
+  min-width: 110px;
+}
+
+.mass-btn .ms-sub {
+  font-family: 'Public Sans', sans-serif;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  text-transform: none;
+  margin-top: 0.1rem;
+}
+
+.mass-btn.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.mass-btn.active .ms-sub { color: rgba(10, 14, 26, 0.7); }
+
+/* ===== Stage header & content ===== */
+.stage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.stage-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.stage-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.2rem;
+}
+
+.stage-meta h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin-bottom: 0;
+}
+
+.stage-track-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 3px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+.stage-body {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.stage-body p { margin-bottom: 0.65rem; }
+.stage-body p:last-child { margin-bottom: 0; }
+
+.stage-body strong { color: var(--accent-soft); font-weight: 500; }
+
+.stage-body em { color: var(--info); font-style: normal; }
+
+.transition-callout {
+  margin-top: 1rem;
+  padding: 0.75rem 0.9rem;
+  background: var(--surface-alt);
+  border-left: 2px solid var(--info);
+  border-radius: 0 4px 4px 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.transition-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--info);
+  margin-bottom: 0.35rem;
+}
+
+/* ===== Lifecycle controls ===== */
+.lifecycle-controls {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.lc-btn {
+  flex: 0 0 auto;
+  min-width: 44px;
+  padding: 0.6rem 0.7rem;
+  font-size: 1rem;
+}
+
+.lc-btn.lc-play {
+  flex: 1;
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  font-weight: 500;
+}
+
+.lc-btn.lc-play.playing {
+  background: var(--info);
+  color: var(--bg);
+  border-color: var(--info);
+}
+
+.stage-progress {
+  display: grid;
+  gap: 4px;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+
+.stage-pip {
+  height: 5px;
+  background: var(--surface-hi);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.stage-pip.completed { background: var(--accent-dim); }
+.stage-pip.current { background: var(--accent); }
+
+.lifecycle-props {
+  grid-template-columns: repeat(2, 1fr);
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1>Interactive H-R Diagram</h1>
+      <span class="subtitle">A-Level Physics · Stellar Classification</span>
+    </div>
+    <div class="mode-tabs" id="modeTabs">
+      <button data-mode="explore" class="active">Explore</button>
+      <button data-mode="gcse">Lifecycle: GCSE</button>
+      <button data-mode="alevel">Lifecycle: A-Level</button>
+      <button data-mode="curious">Lifecycle: Curious</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="diagram-panel">
+      <div class="toggles" id="exploreToggles">
+        <button id="toggleRegions" class="active">Show regions</button>
+        <button id="toggleStars" class="active">Show real stars</button>
+        <button id="toggleGrid">Show isoradius lines</button>
+      </div>
+      <div class="lifecycle-bar" id="lifecycleBar" style="display:none;">
+        <div class="mass-selector">
+          <span class="ms-label">Mass:</span>
+          <button class="mass-btn active" data-mass="1">1 M☉ <span class="ms-sub">Sun-like</span></button>
+          <button class="mass-btn" data-mass="15">15 M☉ <span class="ms-sub">High mass</span></button>
+          <button class="mass-btn" data-mass="30">30 M☉ <span class="ms-sub">Very high mass</span></button>
+        </div>
+      </div>
+      <canvas id="hrCanvas" width="900" height="700"></canvas>
+    </div>
+
+    <div class="side-panel" id="exploreSidePanel">
+
+      <div class="card">
+        <h3>Your star</h3>
+        <div class="props">
+          <div class="prop">
+            <div class="label">Temperature</div>
+            <div class="value" id="propT">5778<span class="unit">K</span></div>
+          </div>
+          <div class="prop">
+            <div class="label">Spectral class</div>
+            <div class="value" id="propClass">G<span class="unit"></span></div>
+          </div>
+          <div class="prop">
+            <div class="label">Luminosity</div>
+            <div class="value" id="propL">1.00<span class="unit">L☉</span></div>
+          </div>
+          <div class="prop">
+            <div class="label">Abs. magnitude</div>
+            <div class="value" id="propM">+4.83<span class="unit"></span></div>
+          </div>
+          <div class="prop">
+            <div class="label">Radius</div>
+            <div class="value" id="propR">1.00<span class="unit">R☉</span></div>
+          </div>
+          <div class="prop">
+            <div class="label">Peak λ</div>
+            <div class="value" id="propLambda">501<span class="unit">nm</span></div>
+          </div>
+        </div>
+        <div id="regionTag" class="region-tag main-sequence">Main sequence</div>
+      </div>
+
+      <div class="card">
+        <h3>Size comparison</h3>
+        <div class="size-viz">
+          <canvas id="sizeCanvas" width="320" height="140"></canvas>
+          <div class="size-caption" id="sizeCaption">vs the Sun</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Jump to a star</h3>
+        <div class="controls">
+          <button class="preset" data-star="sun">☉ Sun</button>
+          <button class="preset" data-star="sirius">Sirius A</button>
+          <button class="preset" data-star="betelgeuse">Betelgeuse</button>
+          <button class="preset" data-star="rigel">Rigel</button>
+          <button class="preset" data-star="proxima">Proxima Cen</button>
+          <button class="preset" data-star="siriusb">Sirius B</button>
+          <button class="preset" data-star="aldebaran">Aldebaran</button>
+          <button class="preset" data-star="vega">Vega</button>
+        </div>
+        <div class="callout">
+          <strong>Try this:</strong> Drag your star straight up the diagram and watch it grow. Why does its size change with constant temperature? (<em>L = 4πR²σT⁴</em>.) Toggle <em>Show isoradius lines</em> to see lines of constant radius cutting diagonally across.
+        </div>
+      </div>
+
+    </div>
+
+    <div class="side-panel" id="lifecycleSidePanel" style="display:none;">
+
+      <div class="card">
+        <div class="stage-header">
+          <div class="stage-meta">
+            <div class="stage-num" id="stageNum">Stage 1 of 4</div>
+            <h3 id="stageName">Stellar Nebula</h3>
+          </div>
+          <div class="stage-track-tag" id="stageRouteTag">→ White Dwarf</div>
+        </div>
+        <div class="stage-body" id="stageBody">
+          Press Play or step through the stages to see the lifecycle of your star.
+        </div>
+        <div class="transition-callout" id="transitionCallout" style="display:none;">
+          <div class="transition-label">→ What happens next</div>
+          <div id="transitionText"></div>
+        </div>
+      </div>
+
+      <div class="card lifecycle-controls-card">
+        <h3>Controls</h3>
+        <div class="lifecycle-controls">
+          <button id="lcRestart" class="lc-btn" title="Restart">⟲</button>
+          <button id="lcPrev" class="lc-btn" title="Previous stage">‹</button>
+          <button id="lcPlay" class="lc-btn lc-play" title="Play">▶ Play</button>
+          <button id="lcNext" class="lc-btn" title="Next stage">›</button>
+        </div>
+        <div class="stage-progress" id="stageProgress"></div>
+      </div>
+
+      <div class="card">
+        <h3>Star properties</h3>
+        <div class="props lifecycle-props">
+          <div class="prop">
+            <div class="label">Temperature</div>
+            <div class="value" id="lcPropT">—<span class="unit">K</span></div>
+          </div>
+          <div class="prop">
+            <div class="label">Luminosity</div>
+            <div class="value" id="lcPropL">—<span class="unit">L☉</span></div>
+          </div>
+          <div class="prop">
+            <div class="label">Radius</div>
+            <div class="value" id="lcPropR">—<span class="unit">R☉</span></div>
+          </div>
+          <div class="prop">
+            <div class="label">Spectral class</div>
+            <div class="value" id="lcPropClass">—</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// Physical constants & coordinate mapping
+// ============================================================
+
+const T_SUN = 5778;       // K
+const SIGMA_SB = 5.670e-8; // W m^-2 K^-4
+const L_SUN = 3.828e26;   // W
+const R_SUN = 6.957e8;    // m
+const WIEN = 2.898e-3;    // m·K
+
+// Diagram coordinate system
+// X axis: log10(T), but PLOTTED REVERSED (hot=left, cool=right)
+// Y axis: log10(L/L_sun)
+const T_MIN_LOG = Math.log10(2000);   // right edge
+const T_MAX_LOG = Math.log10(50000);  // left edge
+const L_MIN_LOG = -4;                 // bottom
+const L_MAX_LOG = 6;                  // top
+
+// Canvas layout
+let canvas, ctx, sizeCanvas, sctx;
+let plotX0, plotY0, plotW, plotH;
+
+// State
+const star = {
+  // start at Sun's position
+  T: T_SUN,
+  L: 1.0,  // in L_sun
+};
+
+let isDragging = false;
+let showRegions = true;
+let showStars = true;
+let showGrid = false;
+
+// ============================================================
+// Reference stars
+// ============================================================
+
+// Reference stars — sizes are now computed from radius via Stefan-Boltzmann
+const REAL_STARS = [
+  { name: 'Sun',         T: 5778,  L: 1.0 },
+  { name: 'Sirius A',    T: 9940,  L: 25.4 },
+  { name: 'Betelgeuse',  T: 3500,  L: 126000 },
+  { name: 'Rigel',       T: 12100, L: 120000 },
+  { name: 'Proxima Cen', T: 3042,  L: 0.0017 },
+  { name: 'Sirius B',    T: 25200, L: 0.056 },
+  { name: 'Aldebaran',   T: 3910,  L: 439 },
+  { name: 'Vega',        T: 9602,  L: 40.1 },
+  { name: 'Antares',     T: 3660,  L: 75900 },
+  { name: 'Polaris',     T: 6015,  L: 1260 },
+  { name: 'Arcturus',    T: 4286,  L: 170 },
+  { name: 'Spica',       T: 22400, L: 12100 },
+  { name: 'Procyon B',   T: 7740,  L: 0.00049 },
+];
+
+const PRESETS = {
+  sun: { T: 5778, L: 1.0 },
+  sirius: { T: 9940, L: 25.4 },
+  betelgeuse: { T: 3500, L: 126000 },
+  rigel: { T: 12100, L: 120000 },
+  proxima: { T: 3042, L: 0.0017 },
+  siriusb: { T: 25200, L: 0.056 },
+  aldebaran: { T: 3910, L: 439 },
+  vega: { T: 9602, L: 40.1 },
+};
+
+// ============================================================
+// Coordinate conversions
+// ============================================================
+
+function setupHighDPI(canvasEl, ctxRef) {
+  // Render at the device's actual pixel resolution AND match the displayed CSS size,
+  // so text and lines stay sharp when the canvas is scaled by CSS (responsive layouts)
+  // or on Retina-class displays.
+  const dpr = window.devicePixelRatio || 1;
+
+  // The "logical" dimensions: what our drawing code thinks in (matches the original
+  // width/height attributes). All coordinate math uses these.
+  const logicalWidth = parseInt(canvasEl.getAttribute('width'));
+  const logicalHeight = parseInt(canvasEl.getAttribute('height'));
+
+  // Find out how big the canvas is actually rendered (after CSS stretching).
+  const rect = canvasEl.getBoundingClientRect();
+  const displayWidth = rect.width || logicalWidth;
+  const displayHeight = rect.height || logicalHeight;
+
+  // The backing store needs to be the displayed size × DPR for crisp pixels.
+  canvasEl.width = Math.round(displayWidth * dpr);
+  canvasEl.height = Math.round(displayHeight * dpr);
+
+  // The context transform maps logical units (1 = 1 logical pixel in our drawing code)
+  // to backing-store pixels: scale = (displaySize × dpr) / logicalSize
+  const scaleX = (displayWidth * dpr) / logicalWidth;
+  const scaleY = (displayHeight * dpr) / logicalHeight;
+  ctxRef.setTransform(scaleX, 0, 0, scaleY, 0, 0);
+
+  // Stash the logical dimensions for our coordinate math
+  canvasEl._logicalWidth = logicalWidth;
+  canvasEl._logicalHeight = logicalHeight;
+}
+
+function setupPlotArea() {
+  // Margins inside canvas — extra space at top for spectral class, right for magnitude
+  const ml = 70, mr = 90, mt = 70, mb = 75;
+  plotX0 = ml;
+  plotY0 = mt;
+  plotW = canvas._logicalWidth - ml - mr;
+  plotH = canvas._logicalHeight - mt - mb;
+}
+
+function TtoX(T) {
+  // Reversed axis: hot (high T) on left
+  const tlog = Math.log10(T);
+  const frac = (T_MAX_LOG - tlog) / (T_MAX_LOG - T_MIN_LOG);
+  return plotX0 + frac * plotW;
+}
+
+function XtoT(x) {
+  const frac = (x - plotX0) / plotW;
+  const tlog = T_MAX_LOG - frac * (T_MAX_LOG - T_MIN_LOG);
+  return Math.pow(10, tlog);
+}
+
+function LtoY(L) {
+  const llog = Math.log10(L);
+  const frac = (L_MAX_LOG - llog) / (L_MAX_LOG - L_MIN_LOG);
+  return plotY0 + frac * plotH;
+}
+
+function YtoL(y) {
+  const frac = (y - plotY0) / plotH;
+  const llog = L_MAX_LOG - frac * (L_MAX_LOG - L_MIN_LOG);
+  return Math.pow(10, llog);
+}
+
+// ============================================================
+// Physics helpers
+// ============================================================
+
+function radiusInRsun(L_in_Lsun, T_in_K) {
+  // From L = 4πR²σT⁴, ratio form: L/L_sun = (R/R_sun)² (T/T_sun)⁴
+  return Math.sqrt(L_in_Lsun * Math.pow(T_SUN / T_in_K, 4));
+}
+
+function absoluteMagnitude(L_in_Lsun) {
+  // M = M_sun - 2.5 log10(L/L_sun)
+  // Sun's absolute bolometric magnitude is +4.83
+  return 4.83 - 2.5 * Math.log10(L_in_Lsun);
+}
+
+// Spectral class boundaries (temperature ranges, in K)
+// These are conventional A-level boundaries
+const SPECTRAL_CLASSES = [
+  { name: 'O', tMin: 30000, tMax: 50000, color: 'rgba(140, 180, 255, 0.85)' },
+  { name: 'B', tMin: 10000, tMax: 30000, color: 'rgba(170, 200, 255, 0.85)' },
+  { name: 'A', tMin: 7500,  tMax: 10000, color: 'rgba(220, 230, 255, 0.85)' },
+  { name: 'F', tMin: 6000,  tMax: 7500,  color: 'rgba(255, 250, 230, 0.85)' },
+  { name: 'G', tMin: 5200,  tMax: 6000,  color: 'rgba(255, 240, 180, 0.85)' },
+  { name: 'K', tMin: 3700,  tMax: 5200,  color: 'rgba(255, 200, 140, 0.85)' },
+  { name: 'M', tMin: 2400,  tMax: 3700,  color: 'rgba(255, 150, 110, 0.85)' },
+];
+
+function spectralClassFor(T) {
+  for (const c of SPECTRAL_CLASSES) {
+    if (T >= c.tMin && T < c.tMax) return c.name;
+  }
+  // edge cases
+  if (T >= 50000) return 'O';
+  return 'M';
+}
+
+function peakWavelength_nm(T_in_K) {
+  return (WIEN / T_in_K) * 1e9;
+}
+
+function radiusToDiagramPixels(R) {
+  // Maps stellar radius (in R_sun) to pixel size on the H-R diagram.
+  // Uses a two-piece log mapping that preserves visual clarity across
+  // ~5 orders of magnitude (white dwarf to red supergiant).
+  //
+  // Calibration:
+  //   R = 0.01 R☉ (white dwarf)        -> ~2.5 px
+  //   R = 1    R☉ (Sun)                -> 6.0 px
+  //   R = 10   R☉ (subgiant)           -> ~14 px
+  //   R = 100  R☉ (red giant)          -> ~22 px
+  //   R = 1000 R☉ (red supergiant)     -> ~30 px
+  const logR = Math.log10(Math.max(R, 0.005));
+  let px;
+  if (logR <= 0) {
+    // 0.005 to 1 R☉: gentle slope to keep WDs visible
+    px = 2 + (logR + 2.3) / 2.3 * 4;
+  } else {
+    // 1 to 1000 R☉: steeper slope to differentiate giants
+    px = 6 + logR * 8;
+  }
+  return Math.max(2, Math.min(32, px));
+}
+
+function temperatureToColor(T) {
+  // Approximate blackbody color (perceptual approximation)
+  // Tanner Helland's algorithm, simplified
+  let r, g, b;
+  const t = T / 100;
+  if (t <= 66) {
+    r = 255;
+    g = 99.4708 * Math.log(t) - 161.12;
+    b = t <= 19 ? 0 : 138.5177 * Math.log(t - 10) - 305.0448;
+  } else {
+    r = 329.6987 * Math.pow(t - 60, -0.1332);
+    g = 288.1222 * Math.pow(t - 60, -0.0755);
+    b = 255;
+  }
+  r = Math.max(0, Math.min(255, r));
+  g = Math.max(0, Math.min(255, g));
+  b = Math.max(0, Math.min(255, b));
+  return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+}
+
+function classifyRegion(T, L) {
+  const tlog = Math.log10(T);
+  const llog = Math.log10(L);
+
+  // Supergiants — checked first because they overlap others on temperature.
+  // The supergiant floor is at log L ≈ 4.7 at the hot end and 4.3 at the cool end,
+  // matching the polygon used for shading (50000 K → L=50000, 2000 K → L=20000).
+  // fracHotToCool: 0 at hottest, 1 at coolest
+  const fracHotToCool = (T_MAX_LOG - tlog) / (T_MAX_LOG - T_MIN_LOG);
+  const supergiantFloorLog = 4.7 - 0.4 * fracHotToCool;
+  if (llog > supergiantFloorLog) return { name: 'Supergiant', cls: 'supergiant' };
+
+  // White dwarfs — hot but very dim
+  if (T > 7000 && L < 0.1) return { name: 'White dwarf', cls: 'white-dwarf' };
+
+  // Red giants — cool and luminous (matches the polygon)
+  if (T < 5500 && T > 3200 && L > 15 && L < 2500) {
+    return { name: 'Red giant', cls: 'red-giant' };
+  }
+
+  // Main sequence — within ±0.7 of the empirical line in log L
+  const ms_predicted = 6.6 * tlog - 24.5;
+  if (Math.abs(llog - ms_predicted) < 0.7) {
+    return { name: 'Main sequence', cls: 'main-sequence' };
+  }
+
+  // Subgiant gap (between MS and giants) — descriptive label
+  if (T < 6500 && L > 1 && L < 100) return { name: 'Subgiant region', cls: 'gap' };
+
+  return { name: 'Unpopulated region', cls: 'gap' };
+}
+
+// ============================================================
+// Drawing the diagram
+// ============================================================
+
+function drawDiagram() {
+  setupPlotArea();
+  ctx.clearRect(0, 0, canvas._logicalWidth, canvas._logicalHeight);
+
+  // Background
+  ctx.fillStyle = '#03060d';
+  ctx.fillRect(plotX0, plotY0, plotW, plotH);
+
+  // Region shading
+  if (showRegions) drawRegions();
+
+  // Iso-radius lines
+  if (showGrid) drawIsoradius();
+
+  // Grid
+  drawGrid();
+
+  // Axes labels
+  drawAxes();
+
+  // Real reference stars (hidden in lifecycle mode to keep focus on the path)
+  if (showStars && currentMode === 'explore') drawRealStars();
+
+  // Lifecycle trail
+  if (currentMode !== 'explore') drawLifecycleTrail();
+
+  // The user's draggable star
+  drawUserStar();
+}
+
+function drawLifecycleTrail() {
+  const stages = getActiveStages();
+  if (stages.length < 2) return;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(plotX0, plotY0, plotW, plotH);
+  ctx.clip();
+
+  // Draw the path through stages, with completed segments fully bright,
+  // and upcoming segments dimmer
+  for (let i = 0; i < stages.length - 1; i++) {
+    const s1 = stages[i];
+    const s2 = stages[i + 1];
+
+    // Skip drawing into the black hole stage (it has no T,L)
+    if (s2.special === 'blackhole') continue;
+
+    const x1 = TtoX(s1.T);
+    const y1 = LtoY(s1.L);
+    const x2 = TtoX(s2.T);
+    const y2 = LtoY(s2.L);
+
+    const isComplete = i < currentStageIndex;
+    const isCurrent = i === currentStageIndex - 1;  // segment just traversed
+
+    if (isComplete || isCurrent) {
+      ctx.strokeStyle = 'rgba(255, 208, 96, 0.55)';
+      ctx.lineWidth = 1.8;
+      ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = 'rgba(255, 208, 96, 0.18)';
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([4, 4]);
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  // Stage waypoint markers
+  ctx.setLineDash([]);
+  // Compute label positions: prefer below-right when there's room, but flip
+  // to above or to the left near edges of the plot.
+  for (let i = 0; i < stages.length; i++) {
+    const s = stages[i];
+    if (s.special === 'blackhole') continue;
+    const x = TtoX(s.T);
+    const y = LtoY(s.L);
+    const isPast = i < currentStageIndex;
+    const isCurrent = i === currentStageIndex;
+
+    ctx.fillStyle = isCurrent ? 'rgba(255, 208, 96, 0.95)' :
+                    isPast ? 'rgba(255, 208, 96, 0.55)' :
+                    'rgba(255, 208, 96, 0.25)';
+    ctx.beginPath();
+    ctx.arc(x, y, isCurrent ? 4 : 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tiny label for waypoints — skip current (user star is there)
+    if (i !== currentStageIndex) {
+      ctx.fillStyle = isPast ? 'rgba(255, 232, 168, 0.85)' : 'rgba(255, 232, 168, 0.45)';
+      ctx.font = '500 10px "JetBrains Mono", monospace';
+
+      // Per-stage label offsets, chosen to avoid region labels and edge clipping
+      const offset = getWaypointLabelOffset(s, i, x, y);
+      ctx.textAlign = offset.align;
+      ctx.fillText(s.name, x + offset.dx, y + offset.dy);
+    }
+  }
+
+  ctx.restore();
+}
+
+function getWaypointLabelOffset(stage, index, x, y) {
+  // Default: place label above-right of the waypoint
+  let dx = 7, dy = -6, align = 'left';
+
+  // If we're near the right edge, flip to the left
+  if (x > plotX0 + plotW - 100) {
+    dx = -7; align = 'right';
+  }
+  // If we're near the top, flip below
+  if (y < plotY0 + 20) {
+    dy = 14;
+  }
+  // If we're near the bottom, force above
+  if (y > plotY0 + plotH - 16) {
+    dy = -6;
+  }
+
+  // Manual overrides for specific stages where the heuristic isn't ideal
+  // (these stages clash with region labels or other waypoints)
+  switch (stage.name) {
+    case 'Stellar Nebula':
+      // Sits inside or near the red-giants region label — push up-left a bit
+      return { dx: -7, dy: -8, align: 'right' };
+    case 'Main Sequence':
+    case 'Main Sequence (O/B-type)':
+    case 'Main Sequence (O-type)':
+      // Below the diagonal stripe so it doesn't clash with the "MAIN SEQUENCE" region label
+      return { dx: 0, dy: 16, align: 'center' };
+    case 'Red Giant':
+      // Below the dot to keep clear of the RED GIANTS region label above it
+      return { dx: 0, dy: 16, align: 'center' };
+    case 'Red Supergiant':
+      // Below-left to stay inside the supergiant band without overlapping label
+      return { dx: -7, dy: 14, align: 'right' };
+    case 'Blue Supergiant':
+      return { dx: 7, dy: 14, align: 'left' };
+    case 'White Dwarf':
+      // Above the dot to keep clear of the WHITE DWARFS region label below
+      return { dx: 0, dy: -8, align: 'center' };
+    case 'Planetary Nebula':
+      // Top of diagram — force below
+      return { dx: 7, dy: 14, align: 'left' };
+    case 'Supernova':
+      // High luminosity — label sits below and to the side
+      return { dx: 7, dy: 14, align: 'left' };
+    case 'Neutron Star':
+      // Bottom-left edge — must label to the right
+      return { dx: 7, dy: 4, align: 'left' };
+    case 'Subgiant':
+    case 'AGB Star':
+      // Above-right
+      return { dx: 7, dy: -6, align: 'left' };
+    case 'Protostar':
+      return { dx: 7, dy: 4, align: 'left' };
+    case 'Wolf-Rayet Star':
+      return { dx: -7, dy: -6, align: 'right' };
+  }
+
+  return { dx, dy, align };
+}
+
+function drawRegions() {
+  ctx.save();
+
+  // Clip everything to the plot area so regions can't bleed past axes
+  ctx.beginPath();
+  ctx.rect(plotX0, plotY0, plotW, plotH);
+  ctx.clip();
+
+  // ===== MAIN SEQUENCE =====
+  // Smooth diagonal stripe drawn as a thick stroke with rounded caps —
+  // gives naturally curved ends without explicit polygon corners.
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255, 245, 220, 0.18)';
+  // Stroke width = 2 × half-band-width (in pixels at the steepest part)
+  // Compute half-band-width as the vertical distance corresponding to ±0.7 in log L
+  const halfBandLogL = 0.7;
+  const halfBandPx = (LtoY(1) - LtoY(Math.pow(10, halfBandLogL)));
+  ctx.lineWidth = halfBandPx * 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  let firstPoint = true;
+  // Walk the centre-line of the main sequence
+  for (let lt = T_MAX_LOG; lt >= T_MIN_LOG; lt -= 0.05) {
+    const T = Math.pow(10, lt);
+    const lcen = 6.6 * lt - 24.5;
+    const x = TtoX(T);
+    const y = LtoY(Math.pow(10, lcen));
+    if (firstPoint) { ctx.moveTo(x, y); firstPoint = false; }
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // ===== RED GIANT BRANCH =====
+  // A rotated ellipse covering cool, luminous stars
+  // Centre approximately at (T=4200, L=200), tilted along the giant branch
+  ctx.fillStyle = 'rgba(255, 170, 110, 0.24)';
+  drawTiltedEllipse(
+    TtoX(4200), LtoY(200),       // centre in pixel space
+    (TtoX(3200) - TtoX(5500)) / 2,   // semi-major (covers T 3200..5500)
+    (LtoY(15) - LtoY(2500)) / 2,     // semi-minor
+    -0.15  // slight rotation tilt
+  );
+
+  // ===== SUPERGIANTS =====
+  // A long horizontal "stadium" (rounded rectangle) across the top
+  // Covers very luminous stars at all temperatures
+  ctx.fillStyle = 'rgba(220, 195, 245, 0.22)';
+  drawRoundedBand(
+    TtoX(50000) + 5,             // left edge (just inside hot side)
+    LtoY(1e6) + 5,               // top edge (just inside top)
+    TtoX(2000) - TtoX(50000) - 10, // width
+    LtoY(20000) - LtoY(1e6) - 10,  // height
+    35  // corner radius
+  );
+
+  // ===== WHITE DWARFS =====
+  // An ellipse in the bottom-left, slightly tilted to mirror the WD cooling track
+  ctx.fillStyle = 'rgba(180, 215, 255, 0.24)';
+  drawTiltedEllipse(
+    TtoX(15000), LtoY(0.005),
+    (TtoX(7000) - TtoX(50000)) / 2,    // semi-major (covers T 7000..50000)
+    (LtoY(0.0001) - LtoY(0.5)) / 2,    // semi-minor
+    0.12  // slight tilt mirroring the WD cooling sequence
+  );
+
+  ctx.restore();
+
+  // ===== Region labels (drawn outside the clip so they appear cleanly) =====
+  ctx.save();
+  ctx.font = '600 11px "JetBrains Mono", monospace';
+  ctx.textAlign = 'center';
+
+  ctx.fillStyle = 'rgba(255, 245, 220, 0.85)';
+  drawLabelInPlot('MAIN SEQUENCE', TtoX(7000), LtoY(2.5));
+
+  ctx.fillStyle = 'rgba(255, 200, 150, 0.95)';
+  drawLabelInPlot('RED GIANTS', TtoX(3500), LtoY(40));
+
+  ctx.fillStyle = 'rgba(230, 210, 250, 0.95)';
+  drawLabelInPlot('SUPERGIANTS', TtoX(15000), LtoY(300000));
+
+  ctx.fillStyle = 'rgba(200, 225, 255, 0.95)';
+  drawLabelInPlot('WHITE DWARFS', TtoX(20000), LtoY(0.005));
+
+  ctx.restore();
+}
+
+function drawTiltedEllipse(cx, cy, rx, ry, rotation) {
+  // Math.abs in case the radii come out negative due to coordinate ordering
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, Math.abs(rx), Math.abs(ry), rotation, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawRoundedBand(x, y, w, h, r) {
+  // Rounded rectangle — modern canvas API has roundRect, but we'll use arcs
+  // for compatibility.
+  const radius = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+  const x1 = x, x2 = x + w;
+  const y1 = y, y2 = y + h;
+  ctx.beginPath();
+  ctx.moveTo(x1 + radius, y1);
+  ctx.lineTo(x2 - radius, y1);
+  ctx.quadraticCurveTo(x2, y1, x2, y1 + radius);
+  ctx.lineTo(x2, y2 - radius);
+  ctx.quadraticCurveTo(x2, y2, x2 - radius, y2);
+  ctx.lineTo(x1 + radius, y2);
+  ctx.quadraticCurveTo(x1, y2, x1, y2 - radius);
+  ctx.lineTo(x1, y1 + radius);
+  ctx.quadraticCurveTo(x1, y1, x1 + radius, y1);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawLabelInPlot(text, x, y) {
+  // Only draw the label if it falls within the visible plot area
+  if (x < plotX0 + 30 || x > plotX0 + plotW - 30) return;
+  if (y < plotY0 + 8 || y > plotY0 + plotH - 8) return;
+  ctx.fillText(text, x, y);
+}
+
+function drawIsoradius() {
+  // Lines of constant radius: log L = 2 log(R/R_sun) + 4 log(T/T_sun)
+  ctx.save();
+  ctx.strokeStyle = 'rgba(122, 168, 255, 0.18)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+
+  const radii = [0.001, 0.01, 0.1, 1, 10, 100, 1000];
+  for (const R of radii) {
+    ctx.beginPath();
+    let started = false;
+    for (let lt = T_MIN_LOG; lt <= T_MAX_LOG; lt += 0.05) {
+      const T = Math.pow(10, lt);
+      const L = R * R * Math.pow(T / T_SUN, 4);
+      const llog = Math.log10(L);
+      if (llog < L_MIN_LOG || llog > L_MAX_LOG) {
+        started = false;
+        continue;
+      }
+      const x = TtoX(T);
+      const y = LtoY(L);
+      if (!started) {
+        ctx.moveTo(x, y);
+        started = true;
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Labels
+  ctx.fillStyle = 'rgba(122, 168, 255, 0.55)';
+  ctx.font = '500 10px "JetBrains Mono", monospace';
+  for (const R of radii) {
+    // Place label where the line crosses T = 4500K (or thereabouts)
+    const T = 3500;
+    const L = R * R * Math.pow(T / T_SUN, 4);
+    const llog = Math.log10(L);
+    if (llog < L_MIN_LOG || llog > L_MAX_LOG) continue;
+    const lbl = R >= 1 ? `${R} R☉` : `${R} R☉`;
+    ctx.fillText(lbl, TtoX(T) + 4, LtoY(L) - 3);
+  }
+  ctx.restore();
+}
+
+function drawGrid() {
+  ctx.save();
+  ctx.strokeStyle = 'rgba(122, 168, 255, 0.10)';
+  ctx.lineWidth = 1;
+
+  // Vertical T gridlines
+  const tValues = [50000, 30000, 10000, 7500, 6000, 5000, 4000, 3000, 2000];
+  for (const T of tValues) {
+    const x = TtoX(T);
+    if (x < plotX0 || x > plotX0 + plotW) continue;
+    ctx.beginPath();
+    ctx.moveTo(x, plotY0);
+    ctx.lineTo(x, plotY0 + plotH);
+    ctx.stroke();
+  }
+
+  // Horizontal L gridlines (log)
+  for (let li = L_MIN_LOG; li <= L_MAX_LOG; li++) {
+    const y = LtoY(Math.pow(10, li));
+    ctx.beginPath();
+    ctx.moveTo(plotX0, y);
+    ctx.lineTo(plotX0 + plotW, y);
+    ctx.stroke();
+  }
+
+  // Border
+  ctx.strokeStyle = 'rgba(58, 66, 101, 1)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(plotX0, plotY0, plotW, plotH);
+  ctx.restore();
+}
+
+function drawAxes() {
+  ctx.save();
+  ctx.fillStyle = 'rgba(232, 230, 225, 0.85)';
+  ctx.font = '500 11px "JetBrains Mono", monospace';
+
+  // ---- BOTTOM X axis: Temperature (K) ----
+  const tLabels = [50000, 30000, 10000, 7500, 6000, 5000, 4000, 3000, 2000];
+  ctx.textAlign = 'center';
+  for (const T of tLabels) {
+    const x = TtoX(T);
+    if (x < plotX0 - 1 || x > plotX0 + plotW + 1) continue;
+    ctx.fillText(T.toString(), x, plotY0 + plotH + 18);
+  }
+
+  // X axis title
+  ctx.font = '500 12px "Public Sans", sans-serif';
+  ctx.fillStyle = 'rgba(232, 230, 225, 0.95)';
+  ctx.fillText('Surface Temperature (K) — hotter ←', plotX0 + plotW / 2, plotY0 + plotH + 42);
+
+  // ---- TOP X axis: Spectral classification (OBAFGKM) ----
+  // Draw a separator above the plot area for the class strip
+  ctx.save();
+  // Tick marks at class boundaries
+  ctx.strokeStyle = 'rgba(180, 190, 220, 0.5)';
+  ctx.lineWidth = 1;
+  for (const c of SPECTRAL_CLASSES) {
+    // Tick at the lower boundary of each class (right edge — since hot is left)
+    const xLeft = TtoX(c.tMax);
+    const xRight = TtoX(c.tMin);
+    const xMid = (xLeft + xRight) / 2;
+
+    // Subtle vertical guide line through plot area for class boundary
+    ctx.strokeStyle = 'rgba(180, 190, 220, 0.08)';
+    ctx.beginPath();
+    ctx.moveTo(xRight, plotY0);
+    ctx.lineTo(xRight, plotY0 + plotH);
+    ctx.stroke();
+
+    // Class letter centred in its strip
+    if (xMid > plotX0 && xMid < plotX0 + plotW) {
+      ctx.fillStyle = c.color;
+      ctx.font = '600 14px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(c.name, xMid, plotY0 - 18);
+    }
+  }
+  // Top axis title
+  ctx.font = '500 11px "Public Sans", sans-serif';
+  ctx.fillStyle = 'rgba(232, 230, 225, 0.7)';
+  ctx.textAlign = 'center';
+  ctx.fillText('Spectral classification', plotX0 + plotW / 2, plotY0 - 42);
+  ctx.restore();
+
+  // ---- LEFT Y axis: Luminosity (log L_sun) ----
+  ctx.textAlign = 'right';
+  ctx.font = '500 11px "JetBrains Mono", monospace';
+  ctx.fillStyle = 'rgba(232, 230, 225, 0.85)';
+  for (let li = L_MIN_LOG; li <= L_MAX_LOG; li++) {
+    const y = LtoY(Math.pow(10, li));
+    const lbl = li === 0 ? '1' : `10${superscript(li)}`;
+    ctx.fillText(lbl, plotX0 - 6, y + 4);
+  }
+
+  // Left Y axis title (rotated)
+  ctx.save();
+  ctx.translate(20, plotY0 + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.font = '500 12px "Public Sans", sans-serif';
+  ctx.fillStyle = 'rgba(232, 230, 225, 0.95)';
+  ctx.fillText('Luminosity (L☉, log scale)', 0, 0);
+  ctx.restore();
+
+  // ---- RIGHT Y axis: Absolute magnitude ----
+  // M = 4.83 - 2.5 log10(L)
+  // L axis goes from 10^-4 (bottom) to 10^6 (top), giving M from +14.83 to -10.17
+  // Use whole-number magnitude tick marks
+  ctx.save();
+  ctx.textAlign = 'left';
+  ctx.font = '500 11px "JetBrains Mono", monospace';
+  ctx.fillStyle = 'rgba(180, 220, 255, 0.85)';
+  const magTicks = [-10, -5, 0, 5, 10, 15];
+  for (const M of magTicks) {
+    // Convert M back to L: L = 10^((M_sun - M)/2.5)
+    const L = Math.pow(10, (4.83 - M) / 2.5);
+    const llog = Math.log10(L);
+    if (llog < L_MIN_LOG - 0.05 || llog > L_MAX_LOG + 0.05) continue;
+    const y = LtoY(L);
+    const lbl = M > 0 ? `+${M}` : M.toString();
+    ctx.fillText(lbl, plotX0 + plotW + 6, y + 4);
+
+    // Tick mark
+    ctx.strokeStyle = 'rgba(180, 220, 255, 0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(plotX0 + plotW, y);
+    ctx.lineTo(plotX0 + plotW + 4, y);
+    ctx.stroke();
+  }
+
+  // Right Y axis title (rotated)
+  ctx.save();
+  ctx.translate(canvas._logicalWidth - 22, plotY0 + plotH / 2);
+  ctx.rotate(Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.font = '500 12px "Public Sans", sans-serif';
+  ctx.fillStyle = 'rgba(180, 220, 255, 0.95)';
+  ctx.fillText('Absolute magnitude (M)', 0, 0);
+  ctx.restore();
+  ctx.restore();
+
+  ctx.restore();
+}
+
+function superscript(n) {
+  const map = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+  return n.toString().split('').map(c => map[c] || c).join('');
+}
+
+function drawRealStars() {
+  ctx.save();
+  for (const s of REAL_STARS) {
+    const x = TtoX(s.T);
+    const y = LtoY(s.L);
+    if (x < plotX0 - 5 || x > plotX0 + plotW + 5) continue;
+    if (y < plotY0 - 5 || y > plotY0 + plotH + 5) continue;
+
+    const R = radiusInRsun(s.L, s.T);
+    const px = radiusToDiagramPixels(R);
+    const color = temperatureToColor(s.T);
+
+    // Halo
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, px * 1.8);
+    grad.addColorStop(0, color);
+    grad.addColorStop(0.5, color.replace('rgb', 'rgba').replace(')', ', 0.4)'));
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, px * 1.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Star body
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, px, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Bright centre
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = 0.6;
+    ctx.beginPath();
+    ctx.arc(x, y, px * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1.0;
+
+    // Label — offset by the star's size so it doesn't overlap
+    ctx.fillStyle = 'rgba(232, 230, 225, 0.78)';
+    ctx.font = '500 10px "Public Sans", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(s.name, x + px + 4, y + 3);
+  }
+  ctx.restore();
+}
+
+function drawUserStar() {
+  // In lifecycle mode, check for special stage rendering
+  if (currentMode !== 'explore') {
+    const stage = getCurrentStage();
+    if (stage && stage.special === 'blackhole') {
+      drawBlackHoleVisualization();
+      return;
+    }
+    if (stage && stage.special === 'supernova') {
+      drawSupernovaVisualization();
+      return;
+    }
+  }
+
+  const x = TtoX(star.T);
+  const y = LtoY(star.L);
+  const color = temperatureToColor(star.T);
+  const R = radiusInRsun(star.L, star.T);
+  const px = radiusToDiagramPixels(R);
+
+  ctx.save();
+
+  // Outer dashed gold ring (selection indicator) — sized to be slightly larger than the star
+  ctx.strokeStyle = 'rgba(255, 208, 96, 0.55)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.arc(x, y, px + 8, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Halo glow
+  const grad = ctx.createRadialGradient(x, y, 0, x, y, px * 2.2);
+  grad.addColorStop(0, color);
+  grad.addColorStop(0.4, color.replace('rgb', 'rgba').replace(')', ', 0.5)'));
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(x, y, px * 2.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Star body
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, px, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Bright centre
+  ctx.fillStyle = '#ffffff';
+  ctx.globalAlpha = 0.75;
+  ctx.beginPath();
+  ctx.arc(x, y, px * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1.0;
+
+  ctx.restore();
+}
+
+let supernovaAnimFrame = null;
+
+function drawSupernovaVisualization() {
+  // The supernova stage has T,L set high — draw it as a luminous explosion
+  // with shockwave rings rather than a normal star
+  const x = TtoX(star.T);
+  const y = LtoY(star.L);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(plotX0, plotY0, plotW, plotH);
+  ctx.clip();
+
+  // Animated shockwave rings — use time for subtle animation
+  const t = (performance.now() / 1000) % 2;
+  for (let i = 0; i < 3; i++) {
+    const phase = (t + i * 0.6) % 2 / 2;  // 0..1
+    const radius = 15 + phase * 60;
+    const alpha = (1 - phase) * 0.55;
+    ctx.strokeStyle = `rgba(255, 230, 180, ${alpha})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Bright explosion core
+  const grad = ctx.createRadialGradient(x, y, 0, x, y, 35);
+  grad.addColorStop(0, '#ffffff');
+  grad.addColorStop(0.25, 'rgba(255, 230, 180, 0.95)');
+  grad.addColorStop(0.6, 'rgba(255, 150, 80, 0.5)');
+  grad.addColorStop(1, 'rgba(255, 100, 50, 0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(x, y, 35, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Bright centre with slight pulsing
+  const pulse = 0.8 + 0.2 * Math.sin(performance.now() / 300);
+  ctx.fillStyle = `rgba(255, 255, 255, ${pulse})`;
+  ctx.beginPath();
+  ctx.arc(x, y, 7, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+
+  // Schedule a re-draw for animation while at this stage
+  if (currentMode !== 'explore') {
+    const stage = getCurrentStage();
+    if (stage && stage.special === 'supernova' && !supernovaAnimFrame) {
+      supernovaAnimFrame = requestAnimationFrame(() => {
+        supernovaAnimFrame = null;
+        renderAll();
+      });
+    }
+  }
+}
+
+function drawBlackHoleVisualization() {
+  // Black hole — drawn outside the data area, in the centre of the plot,
+  // since it has no T,L coordinates
+  const cx = plotX0 + plotW * 0.5;
+  const cy = plotY0 + plotH * 0.5;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(plotX0, plotY0, plotW, plotH);
+  ctx.clip();
+
+  // Accretion-disk-like ring (subtle)
+  const grad = ctx.createRadialGradient(cx, cy, 30, cx, cy, 60);
+  grad.addColorStop(0, 'rgba(255, 100, 50, 0)');
+  grad.addColorStop(0.4, 'rgba(255, 180, 120, 0.4)');
+  grad.addColorStop(0.7, 'rgba(255, 230, 180, 0.2)');
+  grad.addColorStop(1, 'rgba(255, 230, 180, 0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 60, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Photon ring (very thin bright ring at the edge of the event horizon)
+  ctx.strokeStyle = 'rgba(255, 220, 160, 0.8)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 32, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Event horizon — solid black disc
+  ctx.fillStyle = '#000000';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 30, 0, Math.PI * 2);
+  ctx.fill();
+
+  // "Off the diagram" label
+  ctx.fillStyle = 'rgba(232, 230, 225, 0.85)';
+  ctx.font = '500 11px "Public Sans", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('No light escapes — not on H-R diagram', cx, cy + 60);
+
+  ctx.restore();
+}
+
+// ============================================================
+// Size visualisation panel
+// ============================================================
+
+function drawSizeViz() {
+  sctx.clearRect(0, 0, sizeCanvas._logicalWidth, sizeCanvas._logicalHeight);
+
+  const cy = sizeCanvas._logicalHeight / 2;
+
+  // The size-comparison panel uses a magnified version of the diagram scaling
+  // so the differences between e.g. Sirius A (1.7 R☉) and the Sun (1 R☉) are visible.
+  // Scale factor: diagram pixels × 2.0
+  const PANEL_SCALE = 2.0;
+  const sunRadiusPx = radiusToDiagramPixels(1.0) * PANEL_SCALE;  // ~12 px
+  const sunCx = sizeCanvas._logicalWidth * 0.25;
+
+  // Sun reference
+  const sunGrad = sctx.createRadialGradient(sunCx, cy, 0, sunCx, cy, sunRadiusPx * 1.6);
+  sunGrad.addColorStop(0, '#ffe680');
+  sunGrad.addColorStop(0.5, 'rgba(255, 230, 128, 0.4)');
+  sunGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  sctx.fillStyle = sunGrad;
+  sctx.beginPath();
+  sctx.arc(sunCx, cy, sunRadiusPx * 1.6, 0, Math.PI * 2);
+  sctx.fill();
+
+  sctx.fillStyle = '#ffe680';
+  sctx.beginPath();
+  sctx.arc(sunCx, cy, sunRadiusPx, 0, Math.PI * 2);
+  sctx.fill();
+
+  sctx.fillStyle = 'rgba(232, 230, 225, 0.7)';
+  sctx.font = '500 10px "JetBrains Mono", monospace';
+  sctx.textAlign = 'center';
+  sctx.fillText('Sun', sunCx, cy + sunRadiusPx + 14);
+
+  // User's star
+  const R = radiusInRsun(star.L, star.T);
+  const userCx = sizeCanvas._logicalWidth * 0.7;
+  const color = temperatureToColor(star.T);
+  const userRadiusPx = radiusToDiagramPixels(R) * PANEL_SCALE;
+
+  let displayLabel;
+  if (R >= 100) displayLabel = `${R.toFixed(0)} R☉`;
+  else if (R >= 10) displayLabel = `${R.toFixed(1)} R☉`;
+  else if (R >= 1) displayLabel = `${R.toFixed(2)} R☉`;
+  else displayLabel = `${R.toFixed(3)} R☉`;
+
+  // Star body — but cap the visual size for the panel so it doesn't overflow
+  const PANEL_MAX_PX = 50;
+  const visualPx = Math.min(userRadiusPx, PANEL_MAX_PX);
+
+  // Star glow
+  const grad2 = sctx.createRadialGradient(userCx, cy, 0, userCx, cy, visualPx * 1.6);
+  grad2.addColorStop(0, color);
+  grad2.addColorStop(0.5, color.replace('rgb', 'rgba').replace(')', ', 0.4)'));
+  grad2.addColorStop(1, 'rgba(0,0,0,0)');
+  sctx.fillStyle = grad2;
+  sctx.beginPath();
+  sctx.arc(userCx, cy, visualPx * 1.6, 0, Math.PI * 2);
+  sctx.fill();
+
+  sctx.fillStyle = color;
+  sctx.beginPath();
+  sctx.arc(userCx, cy, visualPx, 0, Math.PI * 2);
+  sctx.fill();
+
+  // Bright centre
+  sctx.fillStyle = '#ffffff';
+  sctx.globalAlpha = 0.6;
+  sctx.beginPath();
+  sctx.arc(userCx, cy, visualPx * 0.35, 0, Math.PI * 2);
+  sctx.fill();
+  sctx.globalAlpha = 1.0;
+
+  // Labels — place below or above depending on space
+  const labelY = (cy + visualPx + 22 < sizeCanvas._logicalHeight) ? cy + visualPx + 14 : cy - visualPx - 24;
+  sctx.fillStyle = 'rgba(255, 208, 96, 0.95)';
+  sctx.font = '500 10px "JetBrains Mono", monospace';
+  sctx.textAlign = 'center';
+  sctx.fillText('Your star', userCx, labelY);
+  sctx.fillStyle = 'rgba(255, 232, 168, 0.85)';
+  sctx.fillText(displayLabel, userCx, labelY + 12);
+
+  document.getElementById('sizeCaption').textContent =
+    userRadiusPx > PANEL_MAX_PX ? 'panel-clipped · log scale' : 'compressed log scale';
+}
+
+// ============================================================
+// Update properties panel
+// ============================================================
+
+function updateProps() {
+  const R = radiusInRsun(star.L, star.T);
+  const lambda = peakWavelength_nm(star.T);
+  const M = absoluteMagnitude(star.L);
+  const cls = spectralClassFor(star.T);
+
+  document.getElementById('propT').innerHTML =
+    `${Math.round(star.T)}<span class="unit">K</span>`;
+
+  document.getElementById('propClass').innerHTML =
+    `${cls}<span class="unit"></span>`;
+
+  let lDisplay;
+  if (star.L >= 100) lDisplay = star.L.toExponential(2);
+  else if (star.L >= 1) lDisplay = star.L.toFixed(2);
+  else if (star.L >= 0.01) lDisplay = star.L.toFixed(3);
+  else lDisplay = star.L.toExponential(2);
+  document.getElementById('propL').innerHTML =
+    `${lDisplay}<span class="unit">L☉</span>`;
+
+  const mStr = M >= 0 ? `+${M.toFixed(2)}` : M.toFixed(2);
+  document.getElementById('propM').innerHTML =
+    `${mStr}<span class="unit"></span>`;
+
+  let rDisplay;
+  if (R >= 100) rDisplay = R.toFixed(0);
+  else if (R >= 10) rDisplay = R.toFixed(1);
+  else if (R >= 1) rDisplay = R.toFixed(2);
+  else if (R >= 0.01) rDisplay = R.toFixed(3);
+  else rDisplay = R.toExponential(2);
+  document.getElementById('propR').innerHTML =
+    `${rDisplay}<span class="unit">R☉</span>`;
+
+  document.getElementById('propLambda').innerHTML =
+    `${Math.round(lambda)}<span class="unit">nm</span>`;
+
+  // Region
+  const region = classifyRegion(star.T, star.L);
+  const tag = document.getElementById('regionTag');
+  tag.textContent = region.name;
+  tag.className = 'region-tag ' + region.cls;
+}
+
+// ============================================================
+// Interaction
+// ============================================================
+
+function getMousePos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (canvas._logicalWidth / rect.width),
+    y: (e.clientY - rect.top) * (canvas._logicalHeight / rect.height),
+  };
+}
+
+function getTouchPos(t) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (t.clientX - rect.left) * (canvas._logicalWidth / rect.width),
+    y: (t.clientY - rect.top) * (canvas._logicalHeight / rect.height),
+  };
+}
+
+function moveStarTo(x, y) {
+  // Clamp to plot area
+  const cx = Math.max(plotX0, Math.min(plotX0 + plotW, x));
+  const cy = Math.max(plotY0, Math.min(plotY0 + plotH, y));
+  star.T = XtoT(cx);
+  star.L = YtoL(cy);
+  renderAll();
+}
+
+function onMouseDown(e) {
+  // No dragging in lifecycle mode
+  if (currentMode !== 'explore') return;
+  // If a touch is already being tracked, ignore synthesized mouse events
+  if (activeTouchId !== null) return;
+  const pos = getMousePos(e);
+  // Always start drag if inside plot area
+  if (pos.x >= plotX0 && pos.x <= plotX0 + plotW &&
+      pos.y >= plotY0 && pos.y <= plotY0 + plotH) {
+    isDragging = true;
+    canvas.classList.add('dragging');
+    moveStarTo(pos.x, pos.y);
+  }
+}
+
+function onMouseMove(e) {
+  if (!isDragging || activeTouchId !== null) return;
+  const pos = getMousePos(e);
+  moveStarTo(pos.x, pos.y);
+}
+
+function onMouseUp() {
+  if (activeTouchId !== null) return;
+  isDragging = false;
+  canvas.classList.remove('dragging');
+}
+
+let activeTouchId = null; // identifier of the finger currently controlling the drag
+
+function onTouchStart(e) {
+  // No dragging in lifecycle mode
+  if (currentMode !== 'explore') return;
+  // Only start a new drag if we're not already tracking a finger
+  if (activeTouchId !== null) return;
+  const touch = e.changedTouches[0];
+  const pos = getTouchPos(touch);
+  if (pos.x >= plotX0 && pos.x <= plotX0 + plotW &&
+      pos.y >= plotY0 && pos.y <= plotY0 + plotH) {
+    e.preventDefault();
+    activeTouchId = touch.identifier;
+    isDragging = true;
+    moveStarTo(pos.x, pos.y);
+  }
+}
+
+function onTouchMove(e) {
+  if (!isDragging || activeTouchId === null) return;
+  // Find the touch matching our tracked identifier
+  let activeTouch = null;
+  for (let i = 0; i < e.touches.length; i++) {
+    if (e.touches[i].identifier === activeTouchId) {
+      activeTouch = e.touches[i];
+      break;
+    }
+  }
+  if (!activeTouch) return;
+  e.preventDefault();
+  const pos = getTouchPos(activeTouch);
+  moveStarTo(pos.x, pos.y);
+}
+
+function onTouchEnd(e) {
+  if (activeTouchId === null) return;
+  // Only end the drag if our specific tracked finger is the one that lifted
+  for (let i = 0; i < e.changedTouches.length; i++) {
+    if (e.changedTouches[i].identifier === activeTouchId) {
+      isDragging = false;
+      activeTouchId = null;
+      break;
+    }
+  }
+}
+
+// ============================================================
+// LIFECYCLE / STELLAR EVOLUTION DATA
+// ============================================================
+//
+// Each lifecycle is a sequence of stages. A stage has:
+//   T, L           — position on the H-R diagram
+//   name           — display name of the stage
+//   special        — optional flag: 'supernova', 'blackhole' (special rendering)
+//   description    — { gcse, alevel, curious } — what's happening at this stage
+//   transition     — { gcse, alevel, curious } — what causes the move to the NEXT stage
+//
+// The "transition" of the last stage is null.
+//
+// Three difficulty levels:
+//   gcse     — covers core stages only, simple language, no degeneracy/Chandrasekhar
+//   alevel   — same stages + electron/neutron degeneracy, Chandrasekhar limit, layers
+//   curious  — adds extra intermediate stages (subgiant, helium flash, AGB, Wolf-Rayet)
+//
+// Stages with `levels: ['curious']` only appear in the Curious lifecycle.
+// All other stages appear in all three (with level-appropriate text).
+
+const LIFECYCLE_DATA = {
+  // ============================================================
+  //  ROUTE A — Sun-like (1 M☉) → White Dwarf
+  // ============================================================
+  '1': {
+    mass: 1,
+    massLabel: '1 M☉',
+    routeName: 'White Dwarf',
+    stages: [
+      {
+        T: 3500, L: 8,
+        name: 'Stellar Nebula',
+        description: {
+          gcse: '<p>A vast cloud of hydrogen gas and dust drifts in space. Gravity slowly pulls the densest regions together.</p>',
+          alevel: '<p>A cold, low-density cloud of mostly hydrogen, with traces of helium and dust. Gravity overcomes thermal pressure in the densest pockets, causing them to collapse — a process accelerated when triggered by a nearby supernova shock wave.</p>',
+          curious: '<p>A cold (~10 K) molecular cloud, mostly H₂ with traces of helium, dust grains, and complex molecules. Once a region exceeds the <em>Jeans mass</em>, gravity overcomes thermal pressure and runaway collapse begins.</p><p>Cloud fragments collapse on their own free-fall timescales (~100,000 years for a solar-mass clump), often forming many stars at once in a stellar nursery.</p>',
+        },
+        transition: {
+          gcse: 'As the gas collapses, it heats up and forms a glowing <strong>protostar</strong>.',
+          alevel: 'Gravitational potential energy is converted to thermal energy as the cloud collapses, heating the centre to thousands of kelvin and forming a <strong>protostar</strong>. Pre-main-sequence contraction will continue until the core reaches ~10⁷ K.',
+          curious: 'Conservation of energy turns gravitational PE into kinetic energy of infalling gas, then into heat. The contracting protostar follows the <em>Hayashi track</em> — moving down (cooler envelope) and then leftward across the H-R diagram as its core temperature climbs.',
+        }
+      },
+      {
+        T: 4500, L: 4,
+        name: 'Protostar',
+        levels: ['curious'],
+        description: {
+          curious: '<p>The collapsing core becomes opaque and traps its own radiation. Surface temperatures rise to a few thousand kelvin, while the core climbs steeply toward fusion temperatures.</p><p>The star is highly luminous due to its large radius, even though its surface is still cool — a typical pre-main-sequence object.</p>',
+        },
+        transition: {
+          curious: 'When the core reaches ~10⁷ K, hydrogen fusion (proton-proton chain) ignites. The star reaches stable equilibrium and joins the <em>main sequence</em>.',
+        }
+      },
+      {
+        T: 5778, L: 1.0,
+        name: 'Main Sequence',
+        description: {
+          gcse: '<p>The star is now stable. Hydrogen in its core fuses into helium, releasing huge amounts of energy as light and heat.</p><p>The <strong>outward radiation pressure</strong> from fusion exactly balances the <strong>inward force of gravity</strong>. This balance keeps the star a stable size for billions of years.</p>',
+          alevel: '<p>The star fuses hydrogen into helium in its core via the proton-proton chain. The star is in <strong>hydrostatic equilibrium</strong>: radiation pressure (outward) exactly balances gravitational pressure (inward).</p><p>For a 1 M☉ star, this stable phase lasts about <strong>10 billion years</strong> — most of the star\'s life is spent here. Our Sun is currently halfway through this phase.</p>',
+          curious: '<p>The star fuses hydrogen → helium in its core via the <em>proton-proton chain</em> (CNO cycle dominates above ~1.3 M☉). Hydrostatic equilibrium holds: each shell of the star is supported against gravity by the pressure gradient from below.</p><p>Main-sequence lifetime scales roughly as M^(-2.5), so the Sun lasts ~10 Gyr while a 15 M☉ star lasts only ~10 Myr.</p><p>The star slowly brightens and expands over its main-sequence life as the core gradually fills with helium.</p>',
+        },
+        transition: {
+          gcse: 'Eventually, the hydrogen in the core <strong>runs out</strong>. With no more fuel, the core can no longer push back against gravity and starts to collapse.',
+          alevel: 'When core hydrogen is exhausted, fusion in the core stops. Without radiation pressure to support it, the core <strong>contracts under gravity</strong>, releasing gravitational PE as heat. The contracting core heats up enough to ignite helium fusion, and the outer envelope expands and cools — the star becomes a <strong>red giant</strong>.',
+          curious: 'Core hydrogen exhaustion. The inert helium core contracts and heats up, igniting hydrogen fusion in a thin shell surrounding it. This shell-burning produces more energy than the previous core-burning, and the outer layers begin to expand and cool.',
+        }
+      },
+      {
+        T: 5000, L: 4,
+        name: 'Subgiant',
+        levels: ['curious'],
+        description: {
+          curious: '<p>The Hertzsprung gap. Shell hydrogen burning generates more luminosity than the previous core burning, and the energy excess goes into expanding the envelope. The surface cools as the star expands.</p><p>This phase is rapid — only ~10⁸ years for a Sun-like star — which is why few stars are observed in this region of the H-R diagram.</p>',
+        },
+        transition: {
+          curious: 'The envelope continues to expand and the star ascends the red giant branch. Meanwhile the helium core continues contracting and heating.',
+        }
+      },
+      {
+        T: 4000, L: 100,
+        name: 'Red Giant',
+        description: {
+          gcse: '<p>As the core collapses, it heats up. Eventually it gets hot enough to start fusing <strong>helium</strong>. The huge energy release pushes the star\'s outer layers outwards, and the star swells up into a massive, cool, red <strong>giant</strong>.</p><p>The star is now hundreds of times bigger than before, but its surface is cooler — that\'s why it appears red.</p>',
+          alevel: '<p>The helium core has now contracted enough to begin fusing helium → carbon (the <em>triple-alpha process</em>). The star has a layered structure:</p><p>• <strong>Core:</strong> helium fusion to carbon<br>• <strong>Shell:</strong> hydrogen fusion to helium<br>• <strong>Envelope:</strong> swollen, cool, opaque hydrogen</p><p>The expanded envelope cools to ~3000–4000 K (red), but the star is hugely luminous because of its enormous surface area.</p>',
+          curious: '<p>For a 1 M☉ star, helium ignition happens explosively as the <em>helium flash</em> — degenerate matter in the core ignites without temperature regulation, releasing enormous energy in seconds. After the flash, the core lifts the degeneracy and settles into stable helium burning.</p><p>The star now has a layered structure: helium-burning core, hydrogen-burning shell, vastly expanded envelope. Convection mixes processed material outward (the <em>first dredge-up</em>).</p>',
+        },
+        transition: {
+          gcse: 'Helium fusion only lasts about a million years — much shorter than hydrogen fusion. When the helium runs out, the core can\'t fuse anything heavier (it\'s not massive enough). The outer layers drift away as a glowing shell of gas: a <strong>planetary nebula</strong>.',
+          alevel: 'Helium fusion burns for ~100 million years, much shorter than the main sequence. When helium is exhausted, the carbon-oxygen core left behind is supported by <strong>electron degeneracy pressure</strong> — a quantum-mechanical effect from the Pauli exclusion principle. For a 1 M☉ star, the core never gets hot enough to fuse carbon.',
+          curious: 'After ~10⁸ years on the horizontal branch, helium in the core is exhausted. A new helium-burning shell ignites around the inert C-O core. The star moves onto the <em>asymptotic giant branch</em> (AGB), becoming even more luminous and unstable.',
+        }
+      },
+      {
+        T: 3500, L: 2500,
+        name: 'AGB Star',
+        levels: ['curious'],
+        description: {
+          curious: '<p>The Asymptotic Giant Branch. The star has a thin helium-burning shell around an inert carbon-oxygen core, with a hydrogen-burning shell further out. Both shells are unstable and produce <em>thermal pulses</em>.</p><p>Strong stellar winds (driven by radiation pressure on dust grains) blow off the outer envelope at rates up to 10⁻⁴ M☉/year. The star\'s mass-loss rate exceeds its fusion rate.</p><p>This phase only lasts ~10⁵ years.</p>',
+        },
+        transition: {
+          curious: 'Strong winds and thermal pulses eject the entire outer envelope, exposing the hot carbon-oxygen core. The shed material forms a <em>planetary nebula</em>, and the exposed core moves rapidly leftward across the H-R diagram.',
+        }
+      },
+      {
+        T: 48000, L: 200,
+        name: 'Planetary Nebula',
+        description: {
+          gcse: '<p>The star\'s outer layers drift away into space as a glowing shell of gas — a <strong>planetary nebula</strong>. (The name is misleading — it has nothing to do with planets. Early astronomers just thought they looked planet-like through small telescopes.)</p><p>Left behind in the middle is the star\'s tiny, very hot core, now exposed for the first time.</p>',
+          alevel: '<p>The star\'s outer layers have been gently shed into space as a glowing shell of gas — a <strong>planetary nebula</strong> (named because early astronomers thought they looked like planets through small telescopes; nothing to do with actual planets).</p><p>What remains in the centre is a tiny, very hot, exposed core: future white dwarf material. Its surface temperature can reach 100,000 K.</p>',
+          curious: '<p>The shed envelope is illuminated by the hot central core, glowing as a planetary nebula. The Helix Nebula and Ring Nebula are famous examples. The nebula expands and disperses over ~10,000 years, mixing processed elements (carbon, nitrogen, oxygen) back into the interstellar medium — eventually forming the next generation of stars and planets.</p><p>The exposed C-O core has T ≈ 100,000 K but is shrinking rapidly — its luminosity will drop dramatically as it contracts toward Earth-size.</p>',
+        },
+        transition: {
+          gcse: 'The exposed core slowly shrinks under gravity until it\'s about the size of the Earth. Without any fusion, it can\'t shrink further — it becomes a <strong>white dwarf</strong>.',
+          alevel: 'The exposed core contracts under gravity until <strong>electron degeneracy pressure</strong> halts it — at roughly Earth\'s size. With no fusion to maintain temperature, it now begins to cool over billions of years.',
+          curious: 'No fusion is happening. The exposed core shrinks until electron degeneracy pressure halts the collapse — a quantum-mechanical pressure from the Pauli exclusion principle, independent of temperature. The result is a <em>white dwarf</em> with the mass of the Sun crammed into Earth-sized volume.',
+        }
+      },
+      {
+        T: 15000, L: 0.01,
+        name: 'White Dwarf',
+        description: {
+          gcse: '<p>What\'s left of the star is a tiny, dense, hot core called a <strong>white dwarf</strong>. It\'s about the size of the Earth, but with the mass of the Sun.</p><p>It can\'t fuse anything any more, so it just slowly cools and fades over billions of years.</p>',
+          alevel: '<p>A white dwarf is supported entirely by <strong>electron degeneracy pressure</strong>. Its mass is limited to <strong>1.4 M☉</strong> (the <em>Chandrasekhar limit</em>) — beyond which even electron degeneracy can\'t support it against gravity.</p><p>Density: ~10⁹ kg/m³ (a sugar-cube-sized piece would weigh several tonnes). The white dwarf has no fusion source — it slowly radiates away its remaining heat over billions of years, eventually becoming a cold "black dwarf" (none yet exist; the universe isn\'t old enough).</p>',
+          curious: '<p>The Pauli exclusion principle says no two fermions can occupy the same quantum state. As electrons are squeezed together, they fill higher and higher momentum states, generating an enormous outward pressure that doesn\'t depend on temperature.</p><p>Chandrasekhar derived the <em>1.4 M☉ limit</em> in 1930: above this mass, even degeneracy pressure can\'t resist gravity, and the star must collapse further (to a neutron star or black hole). For a 1 M☉ progenitor, mass loss during the AGB phase ensures the remnant is well below this limit.</p><p>Sirius B and Procyon B are nearby examples. Cooling time to room temperature exceeds the current age of the universe.</p>',
+        },
+        transition: null
+      }
+    ]
+  },
+
+  // ============================================================
+  //  ROUTE B — High-mass (15 M☉) → Neutron Star
+  // ============================================================
+  '15': {
+    mass: 15,
+    massLabel: '15 M☉',
+    routeName: 'Neutron Star',
+    stages: [
+      {
+        T: 4000, L: 300,
+        name: 'Stellar Nebula',
+        description: {
+          gcse: '<p>A massive cloud of hydrogen gas and dust collapses under its own gravity. With more material involved, the resulting star will be far more massive — and far more dramatic — than a Sun-like star.</p>',
+          alevel: '<p>A more massive cloud fragment than the one that formed our Sun. Its higher density and gravitational potential allow it to recruit far more mass during collapse.</p><p>Massive star formation typically occurs in dense, turbulent regions of giant molecular clouds.</p>',
+          curious: '<p>Giant molecular cloud cores with masses well above the Jeans limit. These environments tend to form star clusters rather than isolated stars. The most massive stars form preferentially in the densest, hottest regions where rapid accretion is possible.</p>',
+        },
+        transition: {
+          gcse: 'The dense centre quickly heats up and ignites hydrogen fusion. The star joins the main sequence — but at a much hotter, more luminous position than the Sun.',
+          alevel: 'Rapid contraction heats the core to fusion temperatures. With more mass, hydrostatic equilibrium settles at much higher core temperature and luminosity. The star joins the main sequence near its top — hot, blue, and very luminous.',
+          curious: 'Pre-main-sequence contraction is much faster than for low-mass stars (~10⁵ years for 15 M☉). The star joins the main sequence very high and very hot. The CNO cycle (rather than p-p chain) dominates fusion above ~1.3 M☉.',
+        }
+      },
+      {
+        T: 30000, L: 20000,
+        name: 'Main Sequence (O/B-type)',
+        description: {
+          gcse: '<p>This star fuses hydrogen at a tremendous rate — millions of times faster than the Sun does. Its outward radiation pressure is far greater than the Sun\'s, balancing its much stronger gravity.</p><p>It is hot (30,000+ K) and luminous (tens of thousands of times brighter than the Sun). Despite all this, it only lives this stable life for about <strong>10 million years</strong> — short, compared to the Sun\'s 10 billion.</p>',
+          alevel: '<p>An O- or B-type main-sequence star, fusing hydrogen via the <em>CNO cycle</em> (dominant above ~1.3 M☉). Surface temperature ~30,000 K means the peak emission is well into the ultraviolet.</p><p>Lifetime is short: massive stars burn through their fuel orders of magnitude faster than the rate at which they accumulate it. Lifetime scales roughly as M⁻².⁵, so 15 M☉ ≈ 10 Myr versus the Sun\'s 10 Gyr.</p>',
+          curious: '<p>The CNO cycle dominates because of its steep temperature dependence (rate ∝ T¹⁵-¹⁷ vs the p-p chain\'s T⁴). The high-temperature core is convective rather than radiative, mixing fresh hydrogen into the burning region.</p><p>Strong stellar winds driven by UV radiation pressure cause significant mass loss (~10⁻⁶ M☉/year) — over the star\'s lifetime, several solar masses can be lost this way.</p>',
+        },
+        transition: {
+          gcse: 'When the core hydrogen runs out, the core contracts and the outer layers expand enormously. The star puffs up into a <strong>red supergiant</strong> — like Betelgeuse.',
+          alevel: 'Core hydrogen exhaustion. The helium core contracts; shell hydrogen burning begins. The envelope expands while remaining hot, and the star initially becomes a <strong>blue supergiant</strong>.',
+          curious: 'After the core hydrogen runs out (~10 Myr), the star evolves rapidly through blue-supergiant and yellow-supergiant phases, ending as a red supergiant. In high-mass stars, several heavier elements can fuse in succession — each burning phase shorter than the last.',
+        }
+      },
+      {
+        T: 25000, L: 80000,
+        name: 'Blue Supergiant',
+        levels: ['alevel', 'curious'],
+        description: {
+          alevel: '<p>The star has expanded somewhat, but its surface is still very hot. As shell hydrogen burning continues and the core contracts further, the envelope continues to swell and cool.</p>',
+          curious: '<p>Rigel is a famous example. Mass loss intensifies during this phase. The star may oscillate between blue and red supergiant configurations as the core continues to contract and ignite successive burning stages.</p>',
+        },
+        transition: {
+          alevel: 'Continued envelope expansion cools the surface dramatically while the core ignites helium fusion. The star becomes a <strong>red supergiant</strong>.',
+          curious: 'Helium ignites in the core (no helium flash for massive stars — the core isn\'t degenerate). The envelope continues expanding, cooling the surface. The star becomes a red supergiant like Betelgeuse.',
+        }
+      },
+      {
+        T: 3500, L: 130000,
+        name: 'Red Supergiant',
+        description: {
+          gcse: '<p>The star is now hundreds or even a thousand times bigger than the Sun. Its outer layers are cool and red, but it\'s extremely luminous because of its huge surface area.</p><p>Inside, it fuses through heavier and heavier elements: helium → carbon, then carbon → oxygen, then neon, magnesium, silicon... each stage faster than the last.</p>',
+          alevel: '<p>An onion-like layered structure develops. Each shell fuses progressively heavier elements:</p><p>H → He → C → O → Ne → Mg → Si → <strong>Iron (Fe)</strong></p><p>Each fusion stage is shorter than the last: hydrogen burning lasted millions of years; silicon burning lasts only days. This is because each successive reaction releases less energy per nucleon, and the increased core temperature accelerates neutrino losses.</p><p>Iron is the end of the line — its nucleus has the highest binding energy per nucleon, so fusing it <strong>absorbs</strong> energy rather than releasing it.</p>',
+          curious: '<p>The full <em>onion structure</em>: concentric shells of progressively heavier elements, each burning at a different rate. Neutrino cooling — important at high temperatures — accelerates the inner stages dramatically.</p><p>At the iron core, the binding-energy-per-nucleon curve peaks (~8.8 MeV/nucleon at Fe-56). Any fusion <em>or</em> fission of iron <em>requires</em> energy input. The inert iron core grows by accretion from the silicon-burning shell, supported only by electron degeneracy pressure.</p>',
+        },
+        transition: {
+          gcse: 'When iron forms in the core, fusion <strong>can\'t release energy any more</strong>. With nothing to push back against gravity, the core suddenly collapses — and the star explodes as a <strong>supernova</strong>.',
+          alevel: 'When the iron core exceeds the <strong>Chandrasekhar limit (~1.4 M☉)</strong>, electron degeneracy pressure can no longer support it. The core collapses in <em>milliseconds</em> from Earth-size to neutron-star-size — a free-fall collapse. The rebound shock and a flood of neutrinos blast the outer layers into space: a <strong>type II supernova</strong>.',
+          curious: 'Once the iron core exceeds 1.4 M☉, electron degeneracy fails. The core collapses in ~1 second from Earth-size to neutron-star-size (~20 km). Inside, electrons combine with protons to form neutrons (<em>neutronisation</em>), releasing 10⁵⁸ neutrinos. The collapsing core overshoots, rebounds against neutron degeneracy, and the resulting shock wave — initially stalled by infalling material — is revived by neutrino heating and finally blows the outer layers off at ~10,000 km/s. A type II supernova is born.',
+        }
+      },
+      {
+        T: 6000, L: 800000,
+        name: 'Supernova',
+        special: 'supernova',
+        description: {
+          gcse: '<p>The collapsing core rebounds violently and the outer layers are blown apart in a colossal explosion. For a few weeks, the supernova outshines its entire galaxy.</p><p>Heavy elements (heavier than iron — gold, uranium, etc.) are forged in the explosion and scattered into space, eventually becoming part of new stars and planets.</p>',
+          alevel: '<p>A type II core-collapse supernova. Peak luminosity reaches ~10⁹ L☉ for a few weeks, releasing more energy in seconds than the Sun will radiate in its entire life.</p><p>Most of the energy (~99%) is carried away by <strong>neutrinos</strong>, with only ~1% in kinetic energy of the ejecta and ~0.01% in light. Heavy elements (Fe, Au, U, etc.) are produced in the rapid neutron-capture <em>r-process</em> during the explosion and dispersed into the surrounding gas.</p>',
+          curious: '<p>SN 1987A in the Large Magellanic Cloud is the closest modern example. It was detected first by neutrino observatories (Kamiokande II, IMB) several hours <em>before</em> the visible light arrived — direct confirmation of the core-collapse mechanism.</p><p>The kinetic energy of the ejecta is ~10⁴⁴ J (~10⁵¹ erg). Neutrino energy is ~100× greater. The remnant — initially a neutron star — may be observable for ~10⁵ years as the ejecta sweep up the surrounding interstellar medium (e.g. the Crab Nebula).</p>',
+        },
+        transition: {
+          gcse: 'Once the explosion clears, what remains depends on the original mass. For this star, it\'s a tiny, incredibly dense object: a <strong>neutron star</strong>.',
+          alevel: 'The core that triggered the supernova is left behind. For a 15 M☉ progenitor, the core mass is between ~1.4 and ~3 M☉ — too heavy for electron degeneracy but supportable by <strong>neutron degeneracy pressure</strong>. The result is a neutron star.',
+          curious: 'The remnant compact object\'s nature depends on the mass left over after the explosion. If between ~1.4 M☉ (Chandrasekhar limit) and ~2-3 M☉ (Tolman-Oppenheimer-Volkoff limit), it becomes a neutron star, supported by neutron degeneracy pressure. The expanding gaseous remnant continues to glow for thousands of years.',
+        }
+      },
+      {
+        T: 45000, L: 0.001,
+        name: 'Neutron Star',
+        description: {
+          gcse: '<p>A <strong>neutron star</strong> is the collapsed core left over after the supernova. It\'s only about 20 km across — the size of a city — but contains more mass than the Sun.</p><p>It\'s so dense that a teaspoon of neutron-star material would weigh as much as Mount Everest. Many neutron stars rotate rapidly and emit beams of radiation — these are <strong>pulsars</strong>.</p>',
+          alevel: '<p>The neutron star is supported by <strong>neutron degeneracy pressure</strong> — analogous to electron degeneracy in a white dwarf, but operating on the much denser packing of neutrons. The whole stellar core has been crushed until protons and electrons have combined into neutrons.</p><p>Density: ~10¹⁷ kg/m³ — comparable to atomic-nucleus density. Radius: ~10–15 km. Mass: 1.4–~3 M☉ (the upper limit is the <em>Tolman-Oppenheimer-Volkoff limit</em>).</p><p>Many newly-formed neutron stars rotate hundreds of times per second and emit beamed radio pulses — these are <em>pulsars</em>.</p>',
+          curious: '<p>Inside a neutron star, the structure is exotic: a thin atmosphere of plasma, a crystalline crust of neutron-rich nuclei, and a fluid neutron core (possibly transitioning to free quark matter at the centre, though this is uncertain).</p><p>The Pauli exclusion principle applies to neutrons too. As neutrons are squeezed together, they fill higher momentum states until their degeneracy pressure halts further collapse — but only up to the TOV limit (~2-3 M☉). Above that, no known force can resist gravity.</p><p>Magnetic fields can exceed 10⁸ T (compared to Earth\'s ~5×10⁻⁵ T). Pulsars: rotating beams of radiation, first discovered by Jocelyn Bell Burnell in 1967.</p>',
+        },
+        transition: null
+      }
+    ]
+  },
+
+  // ============================================================
+  //  ROUTE C — Very high-mass (30 M☉) → Black Hole
+  // ============================================================
+  '30': {
+    mass: 30,
+    massLabel: '30 M☉',
+    routeName: 'Black Hole',
+    stages: [
+      {
+        T: 4500, L: 1500,
+        name: 'Stellar Nebula',
+        description: {
+          gcse: '<p>An enormous, dense cloud of hydrogen gas collapses. The gravity is overwhelming — this region will form one of the most massive and dramatic stars in the galaxy.</p>',
+          alevel: '<p>An exceptionally massive cloud fragment, drawn from the densest regions of a giant molecular cloud. Such conditions are rare — typically only one in every ~10,000 newly-formed stars exceeds 30 M☉.</p>',
+          curious: '<p>Massive star formation requires high pressures and rapid accretion. These conditions are typically found in dense star-forming regions like 30 Doradus or the Carina Nebula. The very largest stars (>50 M☉) are rare; only a handful are known in our Galaxy.</p>',
+        },
+        transition: {
+          gcse: 'The gas heats up rapidly, hydrogen fusion ignites, and a colossal blue main-sequence star forms.',
+          alevel: 'Pre-main-sequence contraction completes in <10⁵ years. The star joins the main sequence as a brilliant O-type star, near the upper limit of stellar mass.',
+          curious: 'Pre-MS contraction is very rapid (~10⁴ years). The radiation pressure inside the contracting protostar is so intense that it can halt further accretion before all the gas has been gathered (the <em>Eddington limit</em>) — this is one reason it\'s hard to form stars much above ~100 M☉.',
+        }
+      },
+      {
+        T: 42000, L: 200000,
+        name: 'Main Sequence (O-type)',
+        description: {
+          gcse: '<p>An <strong>O-type</strong> star: blue, blisteringly hot (~40,000 K), and hundreds of thousands of times more luminous than the Sun.</p><p>It fuses hydrogen at a furious rate. Despite having lots of fuel, it burns through it so quickly that this stage only lasts a few <strong>million</strong> years.</p>',
+          alevel: '<p>An O-type main-sequence star — the highest end of stellar luminosities. CNO-cycle fusion dominates absolutely. Surface temperature ~40,000 K means the star emits primarily in the ultraviolet.</p><p>Lifetime: only ~5 million years. By the time the Sun was halfway through its main-sequence life, this kind of star has exploded thousands of times over.</p><p>Mass loss is severe — UV radiation pressure drives intense stellar winds at ~3000 km/s, removing ~10⁻⁵ M☉/year.</p>',
+          curious: '<p>Stars near the top of the main sequence approach the <em>Eddington luminosity</em>, where outward radiation force on free electrons balances inward gravitational force. Above this limit, the star becomes unstable and sheds mass.</p><p>For a 30 M☉ star, the very intense UV radiation field drives <em>line-driven winds</em>: photons scattering off iron-group ions accelerate the outer atmosphere to several thousand km/s. The star may lose 10–20% of its mass during the main sequence alone.</p>',
+        },
+        transition: {
+          gcse: 'When the core hydrogen runs out, the core contracts and the outer layers expand enormously. The star puffs up into an even bigger, more luminous <strong>red supergiant</strong> than its 15 M☉ cousin.',
+          alevel: 'Core hydrogen exhaustion. The helium core contracts; shell hydrogen burning begins and the envelope expands. The star becomes a <em>red supergiant</em> — even more massive and luminous than the 15 M☉ case.',
+          curious: 'After core hydrogen exhaustion, very massive stars often skip the conventional supergiant phases — intense stellar winds may strip the hydrogen envelope entirely, exposing the helium-rich layers beneath. The star becomes a Wolf-Rayet star.',
+        }
+      },
+      {
+        T: 3500, L: 400000,
+        name: 'Red Supergiant',
+        levels: ['gcse', 'alevel'],
+        description: {
+          gcse: '<p>The most massive type of star in the universe — bigger and more luminous than even Betelgeuse. The outer layers are cool and red, but the surface area is so enormous that it shines hundreds of thousands of times brighter than the Sun.</p><p>Inside, it fuses through heavier and heavier elements very quickly: helium → carbon → oxygen → neon → ... until it reaches iron.</p>',
+          alevel: '<p>A red supergiant of even greater mass than the 15 M☉ case. The same onion-shell layered structure develops, with each shell fusing a successively heavier element:</p><p>H → He → C → O → Ne → Mg → Si → <strong>Iron (Fe)</strong></p><p>Each fusion stage is shorter than the last. Silicon burning, the final stage, lasts only days. The whole post-main-sequence evolution is faster and more violent than the 15 M☉ case because the core temperatures are higher.</p>',
+        },
+        transition: {
+          gcse: 'When iron forms in the core, fusion <strong>can\'t release energy any more</strong>. The core collapses suddenly, and the star explodes as a <strong>supernova</strong>.',
+          alevel: 'The iron core grows past the <strong>Chandrasekhar limit (~1.4 M☉)</strong> and electron degeneracy pressure fails. Core collapse triggers a supernova — but for this much more massive star, the remnant left behind will be too heavy for even neutron degeneracy to halt.',
+        }
+      },
+      {
+        T: 48000, L: 250000,
+        name: 'Wolf-Rayet Star',
+        levels: ['curious'],
+        description: {
+          curious: '<p>The hydrogen envelope is gone — extreme stellar winds have stripped it away, exposing helium-rich (and later carbon-rich) layers. Surface temperatures climb to 50,000-100,000 K.</p><p>WR stars are subdivided: WN (nitrogen-rich, freshly-exposed CNO products) and WC (carbon-rich, helium-burning ash). Mass-loss rates of 10⁻⁴ M☉/year. WR 124 has wind velocities of 700 km/s; the Crescent Nebula was sculpted by such winds.</p>',
+        },
+        transition: {
+          curious: 'Each successive burning stage races by: silicon burning lasts only days. When the iron core builds up past 1.4 M☉, electron degeneracy fails and the core collapses, triggering a supernova. For stars above ~25 M☉ progenitor mass, the resulting compact object is too massive for neutron degeneracy to support.',
+        }
+      },
+      {
+        T: 30000, L: 800000,
+        name: 'Supernova',
+        special: 'supernova',
+        description: {
+          gcse: '<p>A massive supernova explosion. The outer layers are blasted into space at thousands of kilometres per second.</p><p>But for this star, the core that\'s left behind is too heavy for even neutron degeneracy to support. Nothing known to physics can stop the collapse...</p>',
+          alevel: '<p>A type Ib or Ic supernova (no hydrogen lines, since the envelope had already been shed). Released energy is similar to a type II event — about 10⁴⁴ J of kinetic energy and 10⁴⁶ J of neutrinos.</p><p>The collapsing core for a 30 M☉ progenitor exceeds the <strong>TOV limit (~2-3 M☉)</strong>. Neutron degeneracy pressure is insufficient. The collapse continues unstoppably.</p>',
+          curious: '<p>The Tolman-Oppenheimer-Volkoff limit, derived in the 1930s, marks the maximum mass that neutron degeneracy pressure can support against gravity. Its exact value depends on the equation of state of neutron matter, but is approximately 2-3 M☉.</p><p>Above this, no known mechanism can halt collapse. The matter falls inside its own <em>Schwarzschild radius</em> (R = 2GM/c²) and forms a black hole. For a 3 M☉ object, R ≈ 9 km.</p>',
+        },
+        transition: {
+          gcse: 'The remnant collapses past every known stopping point — it becomes a region of space where gravity is so strong that not even light can escape. A <strong>black hole</strong>.',
+          alevel: 'With nothing to halt the collapse, the remnant continues shrinking until it crosses its own <em>Schwarzschild radius</em> — the boundary inside which the escape velocity exceeds c. A black hole has formed.',
+          curious: 'Beyond the TOV limit, general relativity predicts inevitable collapse to a singularity. The boundary at R = 2GM/c² (the event horizon) marks the surface of no return. From outside, the original star simply… disappears. A black hole has formed.',
+        }
+      },
+      {
+        T: 0, L: 0,
+        name: 'Black Hole',
+        special: 'blackhole',
+        description: {
+          gcse: '<p>A <strong>black hole</strong>. Not a luminous object at all — no light escapes from it, so there\'s nothing to plot on the H-R diagram.</p><p>From outside, all you can detect is its gravity and any matter falling into it. The original star\'s mass has been compressed into a region smaller than a city, and the gravitational pull is so strong that not even light can escape.</p>',
+          alevel: '<p>The remnant lies behind its <strong>event horizon</strong> — a spherical boundary at the Schwarzschild radius (<em>R = 2GM/c²</em>) where escape velocity equals c. For a 5 M☉ black hole, R ≈ 15 km.</p><p>A stellar-mass black hole isn\'t directly visible. It\'s detected by:</p><p>• Gravitational influence on companion stars (binary X-ray sources like Cygnus X-1)<br>• Accretion disks heated by infalling matter, emitting X-rays<br>• Gravitational waves from black-hole mergers (LIGO)</p>',
+          curious: '<p>General relativity predicts a curvature singularity at the centre — a point where spacetime curvature becomes infinite, and the laws of physics break down. The event horizon at R = 2GM/c² is not a physical surface but a one-way boundary.</p><p>An external observer never actually sees anything fall in: light from infalling matter is increasingly redshifted and dimmed as it approaches the horizon, asymptotically reaching zero. The first direct image of a black hole shadow (M87*) was taken by the Event Horizon Telescope in 2019.</p><p>Stellar-mass black holes have masses 3–~50 M☉. Supermassive ones at galactic centres reach 10⁶-10¹⁰ M☉ but form by different processes.</p>',
+        },
+        transition: null
+      }
+    ]
+  }
+};
+
+// ============================================================
+// LIFECYCLE STATE
+// ============================================================
+let currentMode = 'explore';   // 'explore' | 'gcse' | 'alevel' | 'curious'
+let currentMass = '1';
+let currentStageIndex = 0;
+let isPlaying = false;
+let animationStart = null;
+let animationFrom = null;       // {T, L} at start of current transition
+let animationTo = null;         // {T, L} at end
+let lifecycleAnimFrame = null;
+const STAGE_TRANSITION_MS = 1500;
+const STAGE_PAUSE_MS = 2500;     // pause at each stage during play
+let pauseUntil = null;
+
+function getActiveStages() {
+  // Returns the stages visible at the current difficulty level
+  const route = LIFECYCLE_DATA[currentMass];
+  if (!route) return [];
+  return route.stages.filter(s => {
+    if (!s.levels) return true;  // shown at all levels
+    return s.levels.includes(currentMode);
+  });
+}
+
+function getCurrentStage() {
+  const stages = getActiveStages();
+  return stages[currentStageIndex] || stages[0];
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  // Update tab UI
+  document.querySelectorAll('.mode-tabs button').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+
+  if (mode === 'explore') {
+    document.getElementById('exploreToggles').style.display = '';
+    document.getElementById('lifecycleBar').style.display = 'none';
+    document.getElementById('exploreSidePanel').style.display = '';
+    document.getElementById('lifecycleSidePanel').style.display = 'none';
+    stopLifecycle();
+  } else {
+    document.getElementById('exploreToggles').style.display = 'none';
+    document.getElementById('lifecycleBar').style.display = '';
+    document.getElementById('exploreSidePanel').style.display = 'none';
+    document.getElementById('lifecycleSidePanel').style.display = '';
+    // Reset to first stage when switching modes
+    currentStageIndex = 0;
+    stopLifecycle();
+    showStage(0, false);
+  }
+  renderAll();
+}
+
+function setMass(mass) {
+  currentMass = mass;
+  document.querySelectorAll('.mass-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mass === mass);
+  });
+  currentStageIndex = 0;
+  stopLifecycle();
+  showStage(0, false);
+}
+
+function showStage(index, animate) {
+  const stages = getActiveStages();
+  if (stages.length === 0) return;
+  index = Math.max(0, Math.min(stages.length - 1, index));
+  const target = stages[index];
+
+  // Cancel any running supernova animation since we're moving stages
+  if (supernovaAnimFrame) {
+    cancelAnimationFrame(supernovaAnimFrame);
+    supernovaAnimFrame = null;
+  }
+
+  if (animate && currentStageIndex !== index) {
+    animationFrom = { T: star.T, L: star.L };
+    animationTo = { T: target.T, L: target.L };
+    animationStart = performance.now();
+    // Kick off the animation loop if it's not already running
+    if (!lifecycleAnimFrame) {
+      lifecycleAnimFrame = requestAnimationFrame(lifecycleTick);
+    }
+  } else {
+    star.T = target.T;
+    star.L = target.L;
+    animationFrom = null;
+    animationTo = null;
+    animationStart = null;
+  }
+
+  currentStageIndex = index;
+  updateLifecyclePanel();
+  renderAll();
+}
+
+function updateLifecyclePanel() {
+  const stages = getActiveStages();
+  if (stages.length === 0) return;
+  const stage = stages[currentStageIndex];
+  const route = LIFECYCLE_DATA[currentMass];
+
+  document.getElementById('stageNum').textContent =
+    `Stage ${currentStageIndex + 1} of ${stages.length} · ${route.massLabel}`;
+  document.getElementById('stageName').textContent = stage.name;
+  document.getElementById('stageRouteTag').textContent = `→ ${route.routeName}`;
+
+  // Stage description
+  const desc = (stage.description && stage.description[currentMode])
+            || (stage.description && stage.description.alevel)
+            || '<p>No description available.</p>';
+  document.getElementById('stageBody').innerHTML = desc;
+
+  // Transition callout
+  const transitionEl = document.getElementById('transitionCallout');
+  const transitionText = document.getElementById('transitionText');
+  if (stage.transition && stage.transition[currentMode]) {
+    transitionEl.style.display = '';
+    transitionText.innerHTML = stage.transition[currentMode];
+  } else {
+    transitionEl.style.display = 'none';
+  }
+
+  // Properties
+  if (stage.special === 'blackhole') {
+    document.getElementById('lcPropT').innerHTML = '—';
+    document.getElementById('lcPropL').innerHTML = '—';
+    document.getElementById('lcPropR').innerHTML = '—';
+    document.getElementById('lcPropClass').innerHTML = '—';
+  } else if (stage.special === 'supernova') {
+    document.getElementById('lcPropT').innerHTML =
+      `~${formatT(stage.T)}<span class="unit">K</span>`;
+    document.getElementById('lcPropL').innerHTML =
+      `<span style="color: var(--accent-soft)">peak ~${formatL(stage.L)}</span><span class="unit">L☉</span>`;
+    document.getElementById('lcPropR').innerHTML = '<span style="opacity:0.6">expanding</span>';
+    document.getElementById('lcPropClass').innerHTML = '<span style="opacity:0.6">explosion</span>';
+  } else {
+    const R = radiusInRsun(stage.L, stage.T);
+    document.getElementById('lcPropT').innerHTML =
+      `${formatT(stage.T)}<span class="unit">K</span>`;
+    document.getElementById('lcPropL').innerHTML =
+      `${formatL(stage.L)}<span class="unit">L☉</span>`;
+    document.getElementById('lcPropR').innerHTML =
+      `${formatR(R)}<span class="unit">R☉</span>`;
+    document.getElementById('lcPropClass').innerHTML = spectralClassFor(stage.T);
+  }
+
+  // Stage progress pips
+  const progress = document.getElementById('stageProgress');
+  progress.innerHTML = '';
+  for (let i = 0; i < stages.length; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'stage-pip';
+    if (i < currentStageIndex) pip.classList.add('completed');
+    if (i === currentStageIndex) pip.classList.add('current');
+    pip.onclick = () => { stopLifecycle(); showStage(i, true); };
+    progress.appendChild(pip);
+  }
+
+  // Update Play button text
+  const playBtn = document.getElementById('lcPlay');
+  if (isPlaying) {
+    playBtn.innerHTML = '❚❚ Pause';
+    playBtn.classList.add('playing');
+  } else {
+    playBtn.innerHTML = (currentStageIndex === stages.length - 1) ? '⟲ Replay' : '▶ Play';
+    playBtn.classList.remove('playing');
+  }
+
+  // Disable prev/next at boundaries
+  document.getElementById('lcPrev').disabled = (currentStageIndex === 0);
+  document.getElementById('lcNext').disabled = (currentStageIndex === stages.length - 1);
+}
+
+function formatT(T) {
+  if (T >= 100000) return T.toExponential(1);
+  if (T >= 10000) return Math.round(T).toString();
+  return Math.round(T).toString();
+}
+function formatL(L) {
+  if (L === 0) return '0';
+  if (L >= 100) return L.toExponential(1);
+  if (L >= 1) return L.toFixed(1);
+  if (L >= 0.001) return L.toFixed(3);
+  return L.toExponential(1);
+}
+function formatR(R) {
+  if (R >= 100) return R.toFixed(0);
+  if (R >= 10) return R.toFixed(1);
+  if (R >= 1) return R.toFixed(2);
+  if (R >= 0.01) return R.toFixed(3);
+  return R.toExponential(1);
+}
+
+function nextStage(animate = true) {
+  const stages = getActiveStages();
+  if (currentStageIndex < stages.length - 1) {
+    showStage(currentStageIndex + 1, animate);
+  }
+}
+function prevStage(animate = true) {
+  if (currentStageIndex > 0) {
+    showStage(currentStageIndex - 1, animate);
+  }
+}
+
+function startLifecycle() {
+  const stages = getActiveStages();
+  if (currentStageIndex === stages.length - 1) {
+    // Replay from start
+    showStage(0, false);
+  }
+  isPlaying = true;
+  pauseUntil = performance.now() + STAGE_PAUSE_MS;
+  updateLifecyclePanel();
+  if (!lifecycleAnimFrame) lifecycleAnimFrame = requestAnimationFrame(lifecycleTick);
+}
+
+function stopLifecycle() {
+  isPlaying = false;
+  pauseUntil = null;
+  if (lifecycleAnimFrame) {
+    cancelAnimationFrame(lifecycleAnimFrame);
+    lifecycleAnimFrame = null;
+  }
+  // If we're mid-animation, snap to target
+  if (animationTo) {
+    star.T = animationTo.T;
+    star.L = animationTo.L;
+    animationFrom = null;
+    animationTo = null;
+    animationStart = null;
+  }
+  updateLifecyclePanel();
+  renderAll();
+}
+
+function lifecycleTick(now) {
+  lifecycleAnimFrame = null;
+  const stages = getActiveStages();
+
+  // If we're animating between stages, interpolate
+  if (animationStart !== null && animationFrom && animationTo) {
+    const elapsed = now - animationStart;
+    let t = Math.min(1, elapsed / STAGE_TRANSITION_MS);
+    // Ease in-out
+    const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    // Interpolate in log space for smoother visual motion
+    const logT = Math.log10(animationFrom.T) + eased * (Math.log10(animationTo.T) - Math.log10(animationFrom.T));
+    const logL = Math.log10(animationFrom.L) + eased * (Math.log10(animationTo.L) - Math.log10(animationFrom.L));
+    star.T = Math.pow(10, logT);
+    star.L = Math.pow(10, logL);
+    renderAll();
+    if (t < 1) {
+      lifecycleAnimFrame = requestAnimationFrame(lifecycleTick);
+      return;
+    }
+    // Animation finished — snap exactly, set pause
+    star.T = animationTo.T;
+    star.L = animationTo.L;
+    animationFrom = null;
+    animationTo = null;
+    animationStart = null;
+    if (isPlaying) {
+      pauseUntil = now + STAGE_PAUSE_MS;
+    }
+    renderAll();
+  }
+
+  if (!isPlaying) return;
+
+  // Pausing at this stage
+  if (pauseUntil !== null && now < pauseUntil) {
+    lifecycleAnimFrame = requestAnimationFrame(lifecycleTick);
+    return;
+  }
+  pauseUntil = null;
+
+  // Time to advance to next stage
+  if (currentStageIndex < stages.length - 1) {
+    nextStage(true);
+    lifecycleAnimFrame = requestAnimationFrame(lifecycleTick);
+  } else {
+    // Reached end
+    isPlaying = false;
+    updateLifecyclePanel();
+  }
+}
+
+// ============================================================
+// Render loop
+// ============================================================
+
+function renderAll() {
+  drawDiagram();
+  drawSizeViz();
+  updateProps();
+}
+
+// ============================================================
+// Init
+// ============================================================
+
+function init() {
+  canvas = document.getElementById('hrCanvas');
+  ctx = canvas.getContext('2d');
+  sizeCanvas = document.getElementById('sizeCanvas');
+  sctx = sizeCanvas.getContext('2d');
+
+  // Configure both canvases for high-DPI rendering (sharp text on Retina/scaled displays)
+  setupHighDPI(canvas, ctx);
+  setupHighDPI(sizeCanvas, sctx);
+
+  // ResizeObserver catches layout-driven size changes (e.g. side panel reflow on
+  // device rotation) that resize/orientationchange events don't always cover on iPad.
+  if (typeof ResizeObserver !== 'undefined') {
+    let pendingResize = false;
+    const ro = new ResizeObserver(() => {
+      if (pendingResize) return;
+      pendingResize = true;
+      requestAnimationFrame(() => {
+        pendingResize = false;
+        setupHighDPI(canvas, ctx);
+        setupHighDPI(sizeCanvas, sctx);
+        renderAll();
+      });
+    });
+    ro.observe(canvas);
+    ro.observe(sizeCanvas);
+  }
+
+  // Re-render once webfonts have arrived so text isn't drawn with the fallback font.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => renderAll());
+  }
+
+  canvas.addEventListener('mousedown', onMouseDown);
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+
+  // Touch events — start on canvas, but move/end on document so a drag
+  // continues even if the student's finger strays slightly off the canvas.
+  canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+  document.addEventListener('touchmove', onTouchMove, { passive: false });
+  document.addEventListener('touchend', onTouchEnd);
+  document.addEventListener('touchcancel', onTouchEnd);
+
+  // Toggles
+  document.getElementById('toggleRegions').onclick = (e) => {
+    showRegions = !showRegions;
+    e.target.classList.toggle('active', showRegions);
+    renderAll();
+  };
+  document.getElementById('toggleStars').onclick = (e) => {
+    showStars = !showStars;
+    e.target.classList.toggle('active', showStars);
+    renderAll();
+  };
+  document.getElementById('toggleGrid').onclick = (e) => {
+    showGrid = !showGrid;
+    e.target.classList.toggle('active', showGrid);
+    renderAll();
+  };
+
+  // Presets
+  document.querySelectorAll('button[data-star]').forEach(btn => {
+    btn.onclick = () => {
+      const p = PRESETS[btn.dataset.star];
+      if (p) {
+        star.T = p.T;
+        star.L = p.L;
+        renderAll();
+      }
+    };
+  });
+
+  // ===== Lifecycle mode controls =====
+  // Mode tab buttons
+  document.querySelectorAll('.mode-tabs button').forEach(btn => {
+    btn.onclick = () => setMode(btn.dataset.mode);
+  });
+
+  // Mass selector
+  document.querySelectorAll('.mass-btn').forEach(btn => {
+    btn.onclick = () => setMass(btn.dataset.mass);
+  });
+
+  // Lifecycle playback controls
+  document.getElementById('lcPlay').onclick = () => {
+    if (isPlaying) {
+      stopLifecycle();
+    } else {
+      startLifecycle();
+    }
+  };
+  document.getElementById('lcPrev').onclick = () => {
+    stopLifecycle();
+    prevStage(true);
+  };
+  document.getElementById('lcNext').onclick = () => {
+    stopLifecycle();
+    nextStage(true);
+  };
+  document.getElementById('lcRestart').onclick = () => {
+    stopLifecycle();
+    showStage(0, false);
+  };
+
+  // Resize / orientation change — re-setup high-DPI for new viewport.
+  // Two events, one debounced handler.
+  let resizeTimeout;
+  const handleViewportChange = () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      setupHighDPI(canvas, ctx);
+      setupHighDPI(sizeCanvas, sctx);
+      renderAll();
+    }, 150);
+  };
+  window.addEventListener('resize', handleViewportChange);
+  window.addEventListener('orientationchange', handleViewportChange);
+
+  renderAll();
+}
+
+window.addEventListener('load', init);
+</script>
+
+</body>
+</html>
