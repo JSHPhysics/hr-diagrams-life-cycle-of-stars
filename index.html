@@ -497,15 +497,27 @@ html, body {
 }
 
 .stage-pip {
+  height: 44px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.stage-pip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
   height: 5px;
   background: var(--surface-hi);
   border-radius: 3px;
-  cursor: pointer;
   transition: background 0.2s;
 }
 
-.stage-pip.completed { background: var(--accent-dim); }
-.stage-pip.current { background: var(--accent); }
+.stage-pip.completed::before { background: var(--accent-dim); }
+.stage-pip.current::before { background: var(--accent); }
 
 .lifecycle-props {
   grid-template-columns: repeat(2, 1fr);
@@ -1465,6 +1477,10 @@ function drawUserStar() {
     }
   }
 
+  // Defensive: skip rendering if star coords are non-finite or non-positive.
+  // Can briefly happen during stage transitions if interp produces NaN/Infinity.
+  if (!isFinite(star.T) || star.T <= 0 || !isFinite(star.L) || star.L <= 0) return;
+
   const x = TtoX(star.T);
   const y = LtoY(star.L);
   const color = temperatureToColor(star.T);
@@ -1647,7 +1663,13 @@ function drawSizeViz() {
   sctx.textAlign = 'center';
   sctx.fillText('Sun', sunCx, cy + sunRadiusPx + 14);
 
-  // User's star
+  // User's star — skip if coords are non-finite or non-positive (e.g. Black Hole stage,
+  // or briefly during a stage transition). The Sun reference still renders above.
+  if (!isFinite(star.T) || star.T <= 0 || !isFinite(star.L) || star.L <= 0) {
+    document.getElementById('sizeCaption').textContent = 'no surface to compare';
+    return;
+  }
+
   const R = radiusInRsun(star.L, star.T);
   const userCx = sizeCanvas._logicalWidth * 0.7;
   const color = temperatureToColor(star.T);
@@ -2239,7 +2261,12 @@ function showStage(index, animate) {
     supernovaAnimFrame = null;
   }
 
-  if (animate && currentStageIndex !== index) {
+  // Log-space interpolation requires strictly positive endpoints; the Black Hole
+  // stage has T=0,L=0, so animating from/to it produces NaN coordinates.
+  const canTween = isFinite(star.T) && star.T > 0 && isFinite(star.L) && star.L > 0
+                && isFinite(target.T) && target.T > 0 && isFinite(target.L) && target.L > 0;
+
+  if (animate && currentStageIndex !== index && canTween) {
     animationFrom = { T: star.T, L: star.L };
     animationTo = { T: target.T, L: target.L };
     animationStart = performance.now();
