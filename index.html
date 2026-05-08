@@ -522,6 +522,231 @@ html, body {
 .lifecycle-props {
   grid-template-columns: repeat(2, 1fr);
 }
+
+/* ===== Text-scale picker (S / M / L canvas font sizing) ===== */
+.text-scale-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--surface);
+  padding: 0.25rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.text-scale-picker .ts-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0 0.4rem 0 0.3rem;
+}
+.text-scale-picker button {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  padding: 0.35rem 0.55rem;
+  min-height: 36px;
+  min-width: 36px;
+  font-size: 0.85rem;
+  border-radius: 4px;
+}
+.text-scale-picker button.active {
+  background: var(--surface-hi);
+  color: var(--accent-soft);
+  border-color: var(--border-bright);
+}
+
+@media (max-width: 700px) {
+  .text-scale-picker { width: 100%; justify-content: center; }
+}
+
+/* ===== Worksheet download link ===== */
+.worksheet-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  text-decoration: none;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.7rem 0.9rem;
+  margin-top: 0.85rem;
+  margin-bottom: 0.85rem;
+  transition: border-color 0.15s, background 0.15s;
+  max-width: 720px;
+}
+.worksheet-link:hover { border-color: var(--accent); background: var(--surface-alt); }
+.worksheet-link .ws-icon {
+  font-size: 1.5rem; line-height: 1; flex: 0 0 auto;
+  color: var(--accent);
+}
+.worksheet-link .ws-text { flex: 1; min-width: 0; }
+.worksheet-link .ws-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1rem;
+  color: var(--accent-soft);
+  margin-bottom: 0.15rem;
+}
+.worksheet-link .ws-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.worksheet-link .ws-arrow {
+  font-size: 1rem;
+  color: var(--text-muted);
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+/* ===== Walkthrough banner ===== */
+.walkthrough-banner {
+  background: var(--surface);
+  border: 1px solid var(--border-bright);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.wt-section {
+  font-size: 0.7rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+.wt-section .wt-section-title {
+  color: var(--accent-soft);
+  font-weight: 500;
+}
+
+.wt-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  margin-bottom: 0.7rem;
+  flex-wrap: wrap;
+}
+.wt-num {
+  font-family: 'Fraunces', serif;
+  font-size: 1.6rem;
+  color: var(--accent);
+  font-weight: 500;
+  line-height: 1;
+}
+.wt-type {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--info);
+  padding: 0.2rem 0.55rem;
+  border: 1px solid rgba(122, 168, 255, 0.4);
+  border-radius: 3px;
+}
+.wt-type.pull { color: #d6c172; border-color: rgba(214, 193, 114, 0.45); }
+.wt-progress {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.wt-prompt {
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: var(--text);
+  margin-bottom: 0.7rem;
+}
+.wt-prompt strong { color: var(--accent-soft); font-weight: 600; }
+.wt-prompt em { color: var(--text-muted); font-style: italic; }
+.wt-prompt ul, .wt-prompt ol { margin: 0.4rem 0 0.4rem 1.5rem; }
+.wt-prompt li { margin-bottom: 0.3rem; }
+
+.wt-action {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.83rem;
+  color: var(--accent-soft);
+  background: rgba(255, 208, 96, 0.08);
+  border-left: 2px solid var(--accent);
+  padding: 0.55rem 0.8rem;
+  border-radius: 0 3px 3px 0;
+  margin-bottom: 0.85rem;
+}
+.wt-action:empty { display: none; }
+
+.wt-answer {
+  display: block;
+  width: 100%;
+  min-height: 90px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.7rem 0.85rem;
+  font-family: 'Public Sans', sans-serif;
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.5;
+  resize: vertical;
+  margin-bottom: 0.85rem;
+}
+.wt-answer:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--surface);
+}
+.wt-answer::placeholder { color: var(--text-dim); }
+
+.wt-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.wt-controls button {
+  min-height: 44px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.88rem;
+}
+.wt-controls .wt-spacer-flex { flex: 1; }
+#wtToggleAnswer { background: var(--surface-alt); }
+#wtToggleAnswer.showing { background: var(--surface-hi); border-color: var(--info); color: var(--info); }
+
+.wt-model {
+  margin-top: 0.85rem;
+  background: rgba(110, 230, 158, 0.06);
+  border-left: 2px solid var(--success);
+  border-radius: 0 4px 4px 0;
+  padding: 0.85rem 1rem;
+  font-size: 0.93rem;
+  line-height: 1.55;
+}
+.wt-model-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--success);
+  margin-bottom: 0.4rem;
+}
+.wt-model strong { color: var(--accent-soft); font-weight: 600; }
+.wt-model p { margin-bottom: 0.5rem; }
+.wt-model p:last-child { margin-bottom: 0; }
+.wt-model table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; font-size: 0.88rem; }
+.wt-model th, .wt-model td { text-align: left; padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--border); }
+.wt-model th { color: var(--text-muted); font-weight: 500; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+@media (max-width: 700px) {
+  .walkthrough-banner { padding: 0.85rem 1rem; }
+  .wt-num { font-size: 1.3rem; }
+  .wt-progress { width: 100%; margin-left: 0; }
+  .worksheet-link { padding: 0.6rem 0.75rem; }
+  .worksheet-link .ws-title { font-size: 0.92rem; }
+  .worksheet-link .ws-desc { font-size: 0.74rem; }
+}
 </style>
 </head>
 <body>
@@ -534,11 +759,51 @@ html, body {
     </div>
     <div class="mode-tabs" id="modeTabs">
       <button data-mode="explore" class="active">Explore</button>
+      <button data-mode="walkthrough">Walkthrough</button>
       <button data-mode="gcse">Lifecycle: GCSE</button>
       <button data-mode="alevel">Lifecycle: A-Level</button>
       <button data-mode="curious">Lifecycle: Curious</button>
     </div>
+    <div class="text-scale-picker" id="textScalePicker" title="Adjust on-diagram text size">
+      <span class="ts-label">Text:</span>
+      <button data-scale="0.85" title="Smaller text">A−</button>
+      <button data-scale="1.0" class="active" title="Default text size">A</button>
+      <button data-scale="1.15" title="Larger text">A+</button>
+    </div>
   </header>
+
+  <a class="worksheet-link" href="hr-worksheet.pdf" download>
+    <span class="ws-icon">📄</span>
+    <span class="ws-text">
+      <span class="ws-title">A-level worksheet (PDF)</span>
+      <span class="ws-desc">For use with this simulation, students follow guidance to explain and understand the HR diagram and life cycle of stars.</span>
+    </span>
+    <span class="ws-arrow">↓</span>
+  </a>
+
+  <div class="walkthrough-banner" id="walkthroughBanner" style="display:none;">
+    <div class="wt-section">
+      Section <span id="wtSectionNum">1</span> · <span class="wt-section-title" id="wtSectionTitle">Working out what the axes mean</span>
+    </div>
+    <div class="wt-header">
+      <div class="wt-num" id="wtNum">Q1</div>
+      <div class="wt-type" id="wtType">NOTICE</div>
+      <div class="wt-progress" id="wtProgress">1 / 24</div>
+    </div>
+    <div class="wt-prompt" id="wtPrompt"></div>
+    <div class="wt-action" id="wtAction"></div>
+    <textarea class="wt-answer" id="wtAnswer" placeholder="Type your answer here. It saves automatically as you type." rows="4"></textarea>
+    <div class="wt-controls">
+      <button id="wtPrev" class="lc-btn">‹ Previous</button>
+      <button id="wtToggleAnswer">Show model answer</button>
+      <span class="wt-spacer-flex"></span>
+      <button id="wtNext" class="lc-btn">Next ›</button>
+    </div>
+    <div class="wt-model" id="wtModel" style="display:none;">
+      <div class="wt-model-label">Model answer</div>
+      <div id="wtModelBody"></div>
+    </div>
+  </div>
 
   <div class="layout">
     <div class="diagram-panel">
@@ -752,10 +1017,15 @@ function setupHighDPI(canvasEl, ctxRef) {
   // or on Retina-class displays.
   const dpr = window.devicePixelRatio || 1;
 
-  // The "logical" dimensions: what our drawing code thinks in (matches the original
-  // width/height attributes). All coordinate math uses these.
-  const logicalWidth = parseInt(canvasEl.getAttribute('width'));
-  const logicalHeight = parseInt(canvasEl.getAttribute('height'));
+  // Setting canvasEl.width on a previous call also overwrites the width attribute,
+  // so we cache the original logical dimensions on first call only — subsequent
+  // calls (on resize) keep using the same logical coordinate system.
+  if (typeof canvasEl._logicalWidth !== 'number') {
+    canvasEl._logicalWidth = parseInt(canvasEl.getAttribute('width')) || 900;
+    canvasEl._logicalHeight = parseInt(canvasEl.getAttribute('height')) || 700;
+  }
+  const logicalWidth = canvasEl._logicalWidth;
+  const logicalHeight = canvasEl._logicalHeight;
 
   // Find out how big the canvas is actually rendered (after CSS stretching).
   const rect = canvasEl.getBoundingClientRect();
@@ -772,9 +1042,30 @@ function setupHighDPI(canvasEl, ctxRef) {
   const scaleY = (displayHeight * dpr) / logicalHeight;
   ctxRef.setTransform(scaleX, 0, 0, scaleY, 0, 0);
 
-  // Stash the logical dimensions for our coordinate math
-  canvasEl._logicalWidth = logicalWidth;
-  canvasEl._logicalHeight = logicalHeight;
+  // CSS-pixels-per-logical-pixel ratio. Used by fontPx() so text on the canvas
+  // hits a target CSS-px size on every device, rather than being fixed in
+  // logical px (which becomes too small on iPads and too big on desktops).
+  canvasEl._displayScale = displayWidth / logicalWidth;
+}
+
+// User-adjustable text size multiplier. Persisted in localStorage so the
+// preference survives reloads.
+let textScale = (() => {
+  try { const v = parseFloat(localStorage.getItem('hr-text-scale')); return v > 0 ? v : 1.0; }
+  catch (e) { return 1.0; }
+})();
+
+// Convert a target CSS-px font size into a logical-px size suitable for the
+// given canvas, with min/max clamps to prevent overflow at extreme display
+// scales (e.g. very small mobile canvases).
+function fontPx(targetCSSpx, canvasEl, opts) {
+  opts = opts || {};
+  const minLogical = opts.min || 9;
+  const maxLogical = opts.max || 30;
+  const c = canvasEl || canvas;
+  const scale = (c && c._displayScale) || 1;
+  const ideal = (targetCSSpx * textScale) / scale;
+  return Math.round(Math.min(maxLogical, Math.max(minLogical, ideal)));
 }
 
 function setupPlotArea() {
@@ -1025,7 +1316,7 @@ function drawLifecycleTrail() {
     // Label for waypoints — skip current (user star is there)
     if (i !== currentStageIndex) {
       ctx.fillStyle = isPast ? 'rgba(255, 232, 168, 0.95)' : 'rgba(255, 232, 168, 0.6)';
-      ctx.font = '600 16px "JetBrains Mono", monospace';
+      ctx.font = `600 ${fontPx(11)}px "JetBrains Mono", monospace`;
 
       // Per-stage label offsets, chosen to avoid region labels and edge clipping
       const offset = getWaypointLabelOffset(s, i, x, y);
@@ -1169,7 +1460,7 @@ function drawRegions() {
 
   // ===== Region labels (drawn outside the clip so they appear cleanly) =====
   ctx.save();
-  ctx.font = '700 18px "JetBrains Mono", monospace';
+  ctx.font = `700 ${fontPx(12)}px "JetBrains Mono", monospace`;
   ctx.textAlign = 'center';
 
   ctx.fillStyle = 'rgba(255, 245, 220, 0.85)';
@@ -1255,7 +1546,7 @@ function drawIsoradius() {
 
   // Labels
   ctx.fillStyle = 'rgba(122, 168, 255, 0.75)';
-  ctx.font = '600 16px "JetBrains Mono", monospace';
+  ctx.font = `600 ${fontPx(11)}px "JetBrains Mono", monospace`;
   for (const R of radii) {
     // Place label where the line crosses T = 4500K (or thereabouts)
     const T = 3500;
@@ -1303,7 +1594,9 @@ function drawGrid() {
 function drawAxes() {
   ctx.save();
   ctx.fillStyle = 'rgba(232, 230, 225, 0.95)';
-  ctx.font = '600 22px "JetBrains Mono", monospace';
+  // Tick numbers — target ~14 CSS px on every device.
+  const tickSize = fontPx(14);
+  ctx.font = `600 ${tickSize}px "JetBrains Mono", monospace`;
 
   // ---- BOTTOM X axis: Temperature (K) ----
   const tLabels = [50000, 30000, 10000, 7500, 6000, 5000, 4000, 3000, 2000];
@@ -1314,8 +1607,8 @@ function drawAxes() {
     ctx.fillText(T.toString(), x, plotY0 + plotH + 30);
   }
 
-  // X axis title
-  ctx.font = '600 23px "Public Sans", sans-serif';
+  // X axis title — target ~15 CSS px.
+  ctx.font = `600 ${fontPx(15)}px "Public Sans", sans-serif`;
   ctx.fillStyle = 'rgba(232, 230, 225, 1.0)';
   ctx.fillText('Surface Temperature (K) — hotter ←', plotX0 + plotW / 2, plotY0 + plotH + 68);
 
@@ -1335,16 +1628,17 @@ function drawAxes() {
     ctx.lineTo(xRight, plotY0 + plotH);
     ctx.stroke();
 
-    // Class letter centred in its strip
+    // Class letter centred in its strip — target ~18 CSS px (capped to keep
+    // it from overflowing the top margin on tiny displays).
     if (xMid > plotX0 && xMid < plotX0 + plotW) {
       ctx.fillStyle = c.color;
-      ctx.font = '700 28px "JetBrains Mono", monospace';
+      ctx.font = `700 ${fontPx(18, canvas, { max: 28 })}px "JetBrains Mono", monospace`;
       ctx.textAlign = 'center';
       ctx.fillText(c.name, xMid, plotY0 - 30);
     }
   }
-  // Top axis title
-  ctx.font = '500 19px "Public Sans", sans-serif';
+  // Top axis title — target ~13 CSS px.
+  ctx.font = `500 ${fontPx(13)}px "Public Sans", sans-serif`;
   ctx.fillStyle = 'rgba(232, 230, 225, 0.9)';
   ctx.textAlign = 'center';
   ctx.fillText('Spectral classification', plotX0 + plotW / 2, plotY0 - 64);
@@ -1352,7 +1646,7 @@ function drawAxes() {
 
   // ---- LEFT Y axis: Luminosity (log L_sun) ----
   ctx.textAlign = 'right';
-  ctx.font = '600 22px "JetBrains Mono", monospace';
+  ctx.font = `600 ${fontPx(14)}px "JetBrains Mono", monospace`;
   ctx.fillStyle = 'rgba(232, 230, 225, 0.95)';
   for (let li = L_MIN_LOG; li <= L_MAX_LOG; li++) {
     const y = LtoY(Math.pow(10, li));
@@ -1365,7 +1659,7 @@ function drawAxes() {
   ctx.translate(28, plotY0 + plotH / 2);
   ctx.rotate(-Math.PI / 2);
   ctx.textAlign = 'center';
-  ctx.font = '600 23px "Public Sans", sans-serif';
+  ctx.font = `600 ${fontPx(15)}px "Public Sans", sans-serif`;
   ctx.fillStyle = 'rgba(232, 230, 225, 1.0)';
   ctx.fillText('Luminosity (L☉, log scale)', 0, 0);
   ctx.restore();
@@ -1373,7 +1667,7 @@ function drawAxes() {
   // ---- RIGHT Y axis: Absolute magnitude ----
   ctx.save();
   ctx.textAlign = 'left';
-  ctx.font = '600 22px "JetBrains Mono", monospace';
+  ctx.font = `600 ${fontPx(14)}px "JetBrains Mono", monospace`;
   ctx.fillStyle = 'rgba(180, 220, 255, 0.95)';
   const magTicks = [-10, -5, 0, 5, 10, 15];
   for (const M of magTicks) {
@@ -1398,7 +1692,7 @@ function drawAxes() {
   ctx.translate(canvas._logicalWidth - 28, plotY0 + plotH / 2);
   ctx.rotate(Math.PI / 2);
   ctx.textAlign = 'center';
-  ctx.font = '600 23px "Public Sans", sans-serif';
+  ctx.font = `600 ${fontPx(15)}px "Public Sans", sans-serif`;
   ctx.fillStyle = 'rgba(180, 220, 255, 1.0)';
   ctx.fillText('Absolute magnitude (M)', 0, 0);
   ctx.restore();
@@ -1450,7 +1744,7 @@ function drawRealStars() {
 
     // Label — offset by the star's size so it doesn't overlap
     ctx.fillStyle = 'rgba(232, 230, 225, 0.95)';
-    ctx.font = '600 16px "Public Sans", sans-serif';
+    ctx.font = `600 ${fontPx(11)}px "Public Sans", sans-serif`;
     ctx.textAlign = 'left';
     ctx.fillText(s.name, x + px + 6, y + 5);
   }
@@ -1614,7 +1908,7 @@ function drawBlackHoleVisualization() {
 
   // "Off the diagram" label
   ctx.fillStyle = 'rgba(232, 230, 225, 0.85)';
-  ctx.font = '500 11px "Public Sans", sans-serif';
+  ctx.font = `500 ${fontPx(13)}px "Public Sans", sans-serif`;
   ctx.textAlign = 'center';
   ctx.fillText('No light escapes — not on H-R diagram', cx, cy + 60);
 
@@ -1653,7 +1947,7 @@ function drawSizeViz() {
   sctx.fill();
 
   sctx.fillStyle = 'rgba(232, 230, 225, 0.7)';
-  sctx.font = '500 10px "JetBrains Mono", monospace';
+  sctx.font = `500 ${fontPx(11, sizeCanvas)}px "JetBrains Mono", monospace`;
   sctx.textAlign = 'center';
   sctx.fillText('Sun', sunCx, cy + sunRadiusPx + 14);
 
@@ -1705,7 +1999,7 @@ function drawSizeViz() {
   // Labels — place below or above depending on space
   const labelY = (cy + visualPx + 22 < sizeCanvas._logicalHeight) ? cy + visualPx + 14 : cy - visualPx - 24;
   sctx.fillStyle = 'rgba(255, 208, 96, 0.95)';
-  sctx.font = '500 10px "JetBrains Mono", monospace';
+  sctx.font = `500 ${fontPx(11, sizeCanvas)}px "JetBrains Mono", monospace`;
   sctx.textAlign = 'center';
   sctx.fillText('Your star', userCx, labelY);
   sctx.fillStyle = 'rgba(255, 232, 168, 0.85)';
@@ -2178,9 +2472,297 @@ const LIFECYCLE_DATA = {
 };
 
 // ============================================================
+// WALKTHROUGH (guided worksheet inside the simulation)
+// ============================================================
+// 19 worksheet questions + 5 "Pull it together" reflection prompts = 24 steps.
+// Each step optionally configures the simulation via `setup` and exposes a
+// `model` answer that the student can reveal once they've written their own.
+
+const WALKTHROUGH_STEPS = [
+  // ---- SECTION 1: Working out what the axes mean ----
+  {
+    sectionNum: 1, sectionTitle: 'Working out what the axes mean',
+    label: 'Q1', type: 'NOTICE',
+    prompt: '<strong>Drag your star slowly to the left along the bottom of the diagram.</strong> What happens to the temperature reading in the side panel? Now drag it slowly to the right. Write down the rule.',
+    action: 'Action: drag horizontally and watch the Temperature value',
+    setup: { mode: 'explore', regions: false, stars: false, grid: false, preset: 'sun' },
+    model: '<p>The temperature gets <strong>higher as you drag left</strong>, and lower as you drag right. The hottest stars are on the <em>left</em> of the diagram. <strong>This is the opposite of a normal graph</strong>, where values increase to the right.</p>'
+  },
+  {
+    sectionNum: 1, sectionTitle: 'Working out what the axes mean',
+    label: 'Q2', type: 'NOTICE',
+    prompt: '<strong>Now drag your star slowly upwards on the diagram.</strong> Look at the Luminosity reading. By how much does it change as you cross one major gridline? Try crossing two or three.',
+    action: 'Action: drag vertically and read the Luminosity values at major gridlines',
+    setup: { mode: 'explore', regions: false, stars: false, grid: false },
+    model: '<p>Each major gridline is a <strong>×10 increase</strong> in luminosity. The values go 0.001, 0.01, 0.1, 1, 10, 100, 1000... so the L axis is <strong>logarithmic</strong>, not linear. Crossing two gridlines means a ×100 change.</p>'
+  },
+  {
+    sectionNum: 1, sectionTitle: 'Working out what the axes mean',
+    label: 'Q3', type: 'COMPARE',
+    prompt: '<strong>Look at the right-hand axis: Absolute Magnitude (M).</strong> Drag your star to where Luminosity = 1 L☉. What does M read? Now drag to where L = 100 L☉. Now to L = 0.01 L☉.<br><br>Record the M value at each of those luminosities, then describe the relationship between L and M. In particular: <em>is a brighter star a bigger or smaller M?</em>',
+    action: 'Action: read M at L = 1, 100 and 0.01',
+    setup: { mode: 'explore', regions: false, stars: false, grid: false, preset: 'sun' },
+    model: '<table><thead><tr><th>L (L☉)</th><th>M (absolute magnitude)</th></tr></thead><tbody><tr><td>1</td><td>+4.83</td></tr><tr><td>100</td><td>−0.17 (≈ 0)</td></tr><tr><td>0.01</td><td>+9.83</td></tr></tbody></table><p>A <strong>brighter star has a smaller (more negative) M</strong>. The relationship is <em>inverted</em>: high luminosity → low magnitude. The scale is also logarithmic — each factor of 100 in L corresponds to 5 magnitudes (M = 4.83 − 2.5 log₁₀(L/L☉)).</p>'
+  },
+  {
+    sectionNum: 1, sectionTitle: 'Working out what the axes mean',
+    label: 'Q4', type: 'INSPECT',
+    prompt: 'Find the <strong>Spectral Class</strong> reading in the side panel. As you drag your star left to right, the letter changes. <strong>Write down the order of letters from hottest (left) to coolest (right).</strong>',
+    action: '',
+    setup: { mode: 'explore', regions: false, stars: false, grid: false },
+    model: '<p><strong>O B A F G K M</strong> (hottest to coolest). O-type stars are blue-white at >30,000 K; M-type stars are red at ~3,000 K. The Sun is class G.</p>'
+  },
+  {
+    sectionNum: 1, sectionTitle: 'Working out what the axes mean',
+    label: 'Pull it together', type: 'PULL', isPull: true,
+    prompt: 'Without looking at the simulation, write down the <strong>four conventions of an H–R diagram</strong>. Pretend you\'re explaining them to someone who\'s never seen one. What\'s "weird" about each axis compared to a normal graph?',
+    action: '',
+    setup: null,
+    model: '<ol><li><strong>Temperature decreases left to right</strong> (backwards). Hot blue stars on the left, cool red stars on the right.</li><li><strong>Luminosity is logarithmic</strong>. Each major gridline is a factor of 10 in brightness.</li><li><strong>Absolute magnitude is inverted</strong>: smaller numbers (more negative) mean brighter stars.</li><li><strong>Spectral class</strong> labels the temperature axis with letters: O B A F G K M from hot to cool.</li></ol>'
+  },
+
+  // ---- SECTION 2: Mapping where stars actually live ----
+  {
+    sectionNum: 2, sectionTitle: 'Mapping where stars actually live',
+    label: 'Q5', type: 'OBSERVE',
+    prompt: '<strong>Just <em>look</em> at the diagram with the real stars showing.</strong> Don\'t drag anything yet. Where do most of the named stars sit? Are they evenly scattered, or do you see clusters?',
+    action: '',
+    setup: { mode: 'explore', regions: false, stars: true, grid: false },
+    model: '<p>Stars <strong>cluster</strong> rather than scatter randomly. Most sit along a <strong>diagonal band running from top-left (hot, luminous) to bottom-right (cool, dim)</strong>. A few sit far above this band (very luminous), and a few sit far below it (very dim).</p>'
+  },
+  {
+    sectionNum: 2, sectionTitle: 'Mapping where stars actually live',
+    label: 'Q6', type: 'INVESTIGATE',
+    prompt: 'Use the <strong>Jump to a star</strong> buttons in the side panel to visit each of these stars. For each, record T and L, and write what kind of star you\'d guess it is just from its position on the diagram:<ul><li>Sun</li><li>Sirius A</li><li>Betelgeuse</li><li>Sirius B</li><li>Aldebaran</li></ul>',
+    action: 'Action: click each preset and copy the T and L values',
+    setup: { mode: 'explore', regions: false, stars: true, grid: false },
+    model: '<table><thead><tr><th>Star</th><th>T (K)</th><th>L (L☉)</th><th>What kind</th></tr></thead><tbody><tr><td>Sun</td><td>5,778</td><td>1.0</td><td>Main sequence (G-type)</td></tr><tr><td>Sirius A</td><td>9,940</td><td>25</td><td>Main sequence (A-type, hot)</td></tr><tr><td>Betelgeuse</td><td>3,500</td><td>126,000</td><td>Red supergiant</td></tr><tr><td>Sirius B</td><td>25,200</td><td>0.056</td><td>White dwarf</td></tr><tr><td>Aldebaran</td><td>3,910</td><td>440</td><td>Red giant</td></tr></tbody></table>'
+  },
+  {
+    sectionNum: 2, sectionTitle: 'Mapping where stars actually live',
+    label: 'Q7', type: 'CONFIRM',
+    prompt: 'Now turn on <strong>Show regions</strong>. The diagram lights up with four shaded zones. <strong>Did your guesses for question 6 match the regions?</strong> Were any wrong — and if so, why might you have got them wrong?',
+    action: '',
+    setup: { mode: 'explore', regions: true, stars: true, grid: false },
+    model: '<p>The most common error is mixing up <strong>red giants</strong> and <strong>red supergiants</strong> — both are cool and red, so it\'s tempting to lump them together. The difference is luminosity: Aldebaran (red giant) is around 400 L☉, while Betelgeuse (supergiant) is over 100,000 L☉. <em>Supergiants sit higher.</em></p><p>Another common error: thinking Sirius B is a main-sequence star because it\'s hot (25,000 K). But it\'s also dim (0.056 L☉) — that combination only makes sense for a <em>tiny</em> star, i.e. a white dwarf.</p>'
+  },
+  {
+    sectionNum: 2, sectionTitle: 'Mapping where stars actually live',
+    label: 'Q8', type: 'DEFINE',
+    prompt: 'For each of the four regions, write a <strong>one-sentence definition</strong> in your own words, focusing on temperature and luminosity:<ul><li>Main sequence</li><li>Red giants</li><li>Supergiants</li><li>White dwarfs</li></ul>',
+    action: '',
+    setup: { mode: 'explore', regions: true, stars: true, grid: false },
+    model: '<ul><li><strong>Main sequence</strong> — a diagonal band where stars are stably fusing hydrogen into helium; T and L are correlated (hotter stars are also more luminous).</li><li><strong>Red giants</strong> — cool (~3,000–5,000 K), highly luminous (10²–10⁴ L☉) stars; large radii compensate for the cool surface.</li><li><strong>Supergiants</strong> — extremely luminous (10⁴–10⁶ L☉) across a wide range of temperatures; the largest stars known.</li><li><strong>White dwarfs</strong> — hot (10,000–30,000 K) but very dim (~10⁻²–10⁻⁴ L☉); their tiny radii (~Earth-size) keep them faint despite the high temperature.</li></ul>'
+  },
+  {
+    sectionNum: 2, sectionTitle: 'Mapping where stars actually live',
+    label: 'Pull it together', type: 'PULL', isPull: true,
+    prompt: 'Most stars sit on the main sequence. <strong>Why might that be?</strong> What does sitting on the main sequence tell you about what a star is currently doing?',
+    action: '',
+    setup: null,
+    model: '<p>Most stars sit on the main sequence because <strong>that\'s where they spend most of their lives</strong> — the main sequence is the long, stable hydrogen-burning phase, which lasts billions of years for a Sun-like star. The other regions (red giants, supergiants, white dwarfs) are visited only briefly, or right at the end of a star\'s life.</p><p>So if you find a star on the main sequence, you can be confident it is currently <strong>fusing hydrogen into helium in its core</strong>, in stable equilibrium.</p>'
+  },
+
+  // ---- SECTION 3: Discovering the link between T, L, and R ----
+  {
+    sectionNum: 3, sectionTitle: 'Discovering the link between T, L, and R',
+    label: 'Q9', type: 'EXPERIMENT',
+    prompt: '<strong>Drag your star straight up the diagram</strong>, keeping the temperature roughly constant (around 6000 K). Watch the radius reading. Watch the size of the star itself in the diagram. <strong>What\'s happening?</strong>',
+    action: 'Action: drag from L = 0.01 up to L = 10⁴ at the same T value',
+    setup: { mode: 'explore', regions: true, stars: false, grid: true, preset: 'sun' },
+    model: '<p>The radius reading <strong>increases</strong> as you go up, and the star\'s drawn size visibly grows. So if temperature is fixed, more luminous stars must be <strong>bigger</strong>. This makes sense from L = 4πR²σT⁴ : with T constant, L ∝ R².</p>'
+  },
+  {
+    sectionNum: 3, sectionTitle: 'Discovering the link between T, L, and R',
+    label: 'Q10', type: 'EXPERIMENT',
+    prompt: 'Now do the opposite: <strong>drag your star horizontally</strong>, keeping luminosity roughly constant. What happens to the radius this time?',
+    action: 'Action: drag along a horizontal line at L = 1000 from hot to cool',
+    setup: { mode: 'explore', regions: true, stars: false, grid: true },
+    model: '<p>The radius <strong>decreases</strong> as you move toward hotter temperatures (left). To keep luminosity the same while the surface gets much hotter, the star must <em>shrink</em> — because each square metre of a hot surface emits a lot more power (∝ T⁴). From the equation: with L constant, R² ∝ 1/T⁴, so R ∝ 1/T².</p>'
+  },
+  {
+    sectionNum: 3, sectionTitle: 'Discovering the link between T, L, and R',
+    label: 'Q11', type: 'REASON',
+    prompt: 'You should know the equation <em>L = 4πR²σT⁴</em>. Use what you\'ve just observed (and a bit of algebra) to <strong>predict</strong> what would happen to the radius if you doubled both T <em>and</em> L. Then check your prediction in the simulation.',
+    action: '',
+    setup: { mode: 'explore', regions: true, stars: false, grid: true },
+    model: '<p>Rearranging L = 4πR²σT⁴: R² = L / (4πσT⁴), so R² ∝ L / T⁴.</p><p>If L → 2L and T → 2T, then T⁴ → 16T⁴. So R² → 2L / 16T⁴ = (1/8) × original R². Therefore <strong>R → R/√8 ≈ 0.35 R</strong>. The star is about <strong>one-third its original radius</strong>.</p><p>The instinct is "both go up so R goes up". But T is to the <em>fourth power</em> while L is only first-power, so doubling T overwhelms doubling L by a factor of 8. <strong>T dominates.</strong></p>'
+  },
+  {
+    sectionNum: 3, sectionTitle: 'Discovering the link between T, L, and R',
+    label: 'Q12', type: 'APPLY',
+    prompt: '<strong>Rigel and Betelgeuse have very similar luminosities</strong> (both around 10⁵ L☉). Use the simulation to confirm this. Yet Rigel is hot and blue, while Betelgeuse is cool and red. <strong>Use the equation L = 4πR²σT⁴ to explain how this is possible.</strong> Be specific about which has the larger radius and roughly by how much.',
+    action: 'Action: click Rigel and Betelgeuse presets and compare R',
+    setup: { mode: 'explore', regions: true, stars: true, grid: true, preset: 'rigel' },
+    model: '<p>From the simulation: Rigel T ≈ 12,100 K, L ≈ 120,000 L☉. Betelgeuse T ≈ 3,500 K, L ≈ 126,000 L☉. Their luminosities are essentially the same.</p><p>For a fixed luminosity, R² ∝ 1/T⁴, so:</p><p style="font-family: monospace;">R_Bet / R_Rigel = (T_Rigel / T_Bet)² = (12100 / 3500)² = 3.46² ≈ 12</p><p><strong>Betelgeuse has a radius about 12× larger than Rigel\'s.</strong> Each square metre of Betelgeuse\'s cool surface emits much less power than each square metre of Rigel\'s hot surface, but Betelgeuse compensates by having a vastly greater surface area — about 12² = ~140× more area.</p>'
+  },
+  {
+    sectionNum: 3, sectionTitle: 'Discovering the link between T, L, and R',
+    label: 'Pull it together', type: 'PULL', isPull: true,
+    prompt: 'If someone told you only a star\'s position on the H–R diagram, <strong>what would you immediately know about it?</strong> List as many things as you can.',
+    action: '',
+    setup: null,
+    model: '<p>From a star\'s position alone you can read off:</p><ul><li>Its <strong>surface temperature</strong> T (from the x-axis)</li><li>Its <strong>luminosity</strong> L (from the y-axis)</li><li>Its <strong>spectral class</strong> (from the top axis)</li><li>Its <strong>absolute magnitude</strong> M (from the right axis)</li><li>Its <strong>radius</strong> R, calculated from L and T using L = 4πR²σT⁴</li><li>Its <strong>evolutionary stage</strong> (which region it\'s in: main sequence, giant, supergiant, white dwarf)</li><li>Roughly its <strong>colour</strong> (cool stars are red, hot stars are blue)</li></ul><p>That\'s a <em>lot</em> of physics from one dot on a chart.</p>'
+  },
+
+  // ---- SECTION 4: Following the life of a Sun-like star ----
+  {
+    sectionNum: 4, sectionTitle: 'Following the life of a Sun-like star',
+    label: 'Q13', type: 'TRACE',
+    prompt: '<strong>Step through all five stages</strong> using the Next button in the controls panel. For each stage, record (a) where on the diagram the star sits, (b) what it\'s <em>doing</em> physically (what\'s fusing, what\'s contracting, etc.), and (c) what causes the star to leave that stage.<br><br>Stages: Stellar Nebula · Main Sequence · Red Giant · Planetary Nebula · White Dwarf',
+    action: 'Action: click Next to advance through each stage; read the description and "What happens next" boxes',
+    setup: { mode: 'alevel', mass: '1', stage: 0 },
+    model: '<table><thead><tr><th>Stage</th><th>Position</th><th>What\'s happening</th><th>Why it ends</th></tr></thead><tbody><tr><td>Stellar Nebula</td><td>Top-right</td><td>H gas + dust collapsing under gravity; not yet fusing</td><td>Core reaches 10⁷ K and fusion ignites</td></tr><tr><td>Main Sequence</td><td>Middle (T=5778, L=1)</td><td>H → He fusion; hydrostatic equilibrium</td><td>Core hydrogen runs out</td></tr><tr><td>Red Giant</td><td>Top-right</td><td>He → C fusion; envelope hugely expanded</td><td>Core helium exhausted; outer layers shed</td></tr><tr><td>Planetary Nebula</td><td>Top-left (very hot)</td><td>Outer layers drift away as a glowing shell</td><td>Exposed core contracts until electron degeneracy halts it</td></tr><tr><td>White Dwarf</td><td>Bottom-left</td><td>No fusion; Earth-sized; supported by electron degeneracy</td><td>Doesn\'t end — slowly cools and fades</td></tr></tbody></table>'
+  },
+  {
+    sectionNum: 4, sectionTitle: 'Following the life of a Sun-like star',
+    label: 'Q14', type: 'IDENTIFY',
+    prompt: '<strong>One physical principle keeps appearing</strong> in the explanations of why each stage starts and ends. It\'s about a balance of two forces. Read the descriptions carefully and write down what this principle is, in your own words.',
+    action: '',
+    setup: { mode: 'alevel', mass: '1' },
+    model: '<p><strong>Hydrostatic equilibrium</strong>: a stable star is in balance between two opposing forces — <strong>outward radiation pressure</strong> from fusion in the core, and <strong>inward gravitational pressure</strong> from the star\'s own mass.</p><p>When fusion stops, radiation pressure drops, gravity wins, and the star contracts. When the contraction heats the core enough to start a new fusion reaction (e.g. helium fusion), pressure builds up again and a new equilibrium is reached. <em>Every transition in a star\'s life is a re-balancing.</em></p>'
+  },
+  {
+    sectionNum: 4, sectionTitle: 'Following the life of a Sun-like star',
+    label: 'Q15', type: 'REASON',
+    prompt: 'Using your answer to Q14: explain <strong>why a star can\'t just stay on the main sequence forever</strong>. What makes the equilibrium fail?',
+    action: '',
+    setup: { mode: 'alevel', mass: '1' },
+    model: '<p>Because <strong>the fuel runs out</strong>. Hydrogen in the core gets steadily converted to helium, and once the core hydrogen is exhausted, fusion stops. Without fusion, the core can no longer generate the radiation pressure that supports the star against gravity.</p><p>The equilibrium fails not because the gravity changes, but because <em>the outward push disappears when the fuel is gone</em>. The core then contracts, heats up, and the next stage of the star\'s life begins.</p>'
+  },
+  {
+    sectionNum: 4, sectionTitle: 'Following the life of a Sun-like star',
+    label: 'Pull it together', type: 'PULL', isPull: true,
+    prompt: '<strong>Sketch the path</strong> the star takes across the H–R diagram during its lifecycle, labelling each stage. Then add a short note next to each transition explaining <em>why</em> it happens.',
+    action: 'Action: use a piece of paper, or describe the path step-by-step',
+    setup: { mode: 'alevel', mass: '1' },
+    model: '<p>The path on the H–R diagram for a Sun-like star looks roughly like an "N" rotated:</p><ol><li><strong>Nebula</strong> (top-right) → contracts, heats up → joins <strong>Main Sequence</strong> (middle, where T=5778, L=1)</li><li><strong>Main Sequence</strong> → core H exhausted, envelope expands and cools → climbs to <strong>Red Giant</strong> (top-right)</li><li><strong>Red Giant</strong> → outer layers ejected, hot core exposed → moves <em>left</em> rapidly to <strong>Planetary Nebula</strong> (top-left)</li><li><strong>Planetary Nebula</strong> → core contracts, no more fusion → drops down to <strong>White Dwarf</strong> (bottom-left)</li></ol><p>Annotate transitions: <em>"H runs out → core collapses → He fusion starts"</em> between MS and Red Giant; <em>"He runs out → outer layers shed"</em> between Red Giant and PN; <em>"electron degeneracy halts collapse"</em> between PN and White Dwarf.</p>'
+  },
+
+  // ---- SECTION 5: Mass determines fate ----
+  {
+    sectionNum: 5, sectionTitle: 'Mass determines fate',
+    label: 'Q16', type: 'COMPARE',
+    prompt: 'Switch the mass selector through all three options: <strong>1 M☉, 15 M☉, 30 M☉</strong>. Run each lifecycle once through. For each mass, record:<ul><li>Where on the diagram does its main-sequence life begin?</li><li>How long does it last? <em>(days, years, Myr, Gyr — order of magnitude is fine)</em></li><li>What\'s its biggest, brightest stage?</li><li>How does it die?</li><li>What\'s left behind at the end?</li></ul>Don\'t just copy stage names — describe what\'s actually different about each star\'s life.',
+    action: 'Action: click each Mass button and step through all stages',
+    setup: { mode: 'alevel', mass: '1' },
+    model: '<table><thead><tr><th></th><th>1 M☉</th><th>15 M☉</th><th>30 M☉</th></tr></thead><tbody><tr><td>MS start</td><td>G-type, T≈5800 K, L=1</td><td>O/B-type, T≈30,000 K, L≈20,000</td><td>O-type, T≈42,000 K, L≈200,000</td></tr><tr><td>Lifetime</td><td>~10 Gyr</td><td>~10 Myr</td><td>~5 Myr</td></tr><tr><td>Biggest stage</td><td>Red giant (~100 L☉)</td><td>Red supergiant (~10⁵ L☉)</td><td>Red supergiant (~4×10⁵ L☉)</td></tr><tr><td>How it dies</td><td>Sheds outer layers as planetary nebula</td><td>Core-collapse supernova</td><td>Core-collapse supernova</td></tr><tr><td>Remnant</td><td>White dwarf</td><td>Neutron star</td><td>Black hole</td></tr></tbody></table>'
+  },
+  {
+    sectionNum: 5, sectionTitle: 'Mass determines fate',
+    label: 'Q17', type: 'SPOT THE RULE',
+    prompt: 'Complete each statement in your own words:<ul><li>(a) The more massive a star is, the <strong>____</strong> its main sequence life.</li><li>(b) Stars with mass less than about <strong>____</strong> M☉ end their lives as <strong>____</strong>.</li><li>(c) Stars with mass roughly between <strong>____</strong> and <strong>____</strong> M☉ end as <strong>____</strong>.</li><li>(d) Stars more massive than about <strong>____</strong> M☉ end as <strong>____</strong>.</li></ul>',
+    action: '',
+    setup: { mode: 'alevel' },
+    model: '<p><strong>(a)</strong> The more massive a star is, the <strong>shorter</strong> its main sequence life.</p><p><strong>(b)</strong> Stars with mass less than about <strong>8</strong> M☉ end their lives as <strong>white dwarfs</strong>.</p><p><strong>(c)</strong> Stars with mass roughly between <strong>8</strong> and <strong>25</strong> M☉ end as <strong>neutron stars</strong>.</p><p><strong>(d)</strong> Stars more massive than about <strong>25</strong> M☉ end as <strong>black holes</strong>.</p><p><em>The exact mass thresholds are approximate. Different textbooks quote slightly different values. The principle — that more mass means a more dramatic ending — is the key idea.</em></p>'
+  },
+  {
+    sectionNum: 5, sectionTitle: 'Mass determines fate',
+    label: 'Q18', type: 'PREDICT',
+    prompt: 'Why might a more massive star <em>burn through its fuel faster</em>, even though it has more fuel? <strong>Think about gravity, core temperature, and the rate of fusion reactions.</strong>',
+    action: '',
+    setup: { mode: 'alevel' },
+    model: '<ol><li><strong>More mass</strong> means stronger gravity pulling inwards.</li><li>To stay in equilibrium, the core has to <strong>push back harder</strong> — which means a higher core <strong>pressure</strong> and <strong>temperature</strong>.</li><li>Fusion rates rise <strong>extremely steeply</strong> with temperature (the proton-proton chain rate goes as T⁴; the CNO cycle goes as T¹⁵–¹⁷).</li><li>So a more massive star burns its hydrogen at a vastly higher rate — its luminosity is much higher, and its fuel runs out far faster than the extra mass can compensate for.</li></ol><p>Concretely: a 15 M☉ star has 15× the fuel of the Sun, but burns ~10,000× faster — so it lasts only ~1/1000 as long.</p>'
+  },
+  {
+    sectionNum: 5, sectionTitle: 'Mass determines fate',
+    label: 'Q19', type: 'SYNTHESISE',
+    prompt: 'A star is observed at <strong>T ≈ 25 000 K, L ≈ 50 000 L☉</strong>. Find this position on the diagram. Predict (and justify): (a) which region it\'s in, (b) what kind of end it will eventually have, and (c) roughly how its main-sequence life compares to the Sun\'s.',
+    action: 'Action: switch to Explore mode and drag your star to ~T=25,000 K, L≈50,000 L☉',
+    setup: { mode: 'explore', regions: true, stars: true, grid: false },
+    model: '<p><strong>(a) Region:</strong> This sits <em>just above</em> the main sequence at this temperature (15 M☉ MS is around T=30,000, L=20,000), and well below the supergiant region. It\'s likely a <strong>blue supergiant</strong> — a high-mass star that has just left the main sequence and is starting to evolve toward the red supergiant phase. <em>(Accept also: very high-mass main sequence star.)</em></p><p><strong>(b) Fate:</strong> A star of this luminosity (10⁴–10⁵ L☉) corresponds to roughly <strong>10–15 M☉</strong>. It will eventually become a red supergiant, undergo a core-collapse supernova, and leave behind a <strong>neutron star</strong>.</p><p><strong>(c) Lifetime:</strong> Massive stars at this part of the diagram have main-sequence lifetimes of around <strong>10 million years</strong> — about 1000× shorter than the Sun\'s 10 billion years.</p>'
+  },
+  {
+    sectionNum: 5, sectionTitle: 'Mass determines fate',
+    label: 'Pull it together', type: 'PULL', isPull: true,
+    prompt: 'Looking back at everything you\'ve worked out: <strong>what makes the H–R diagram such a powerful tool for an astronomer?</strong> Why is it more useful than just listing each star\'s properties in a table?',
+    action: '',
+    setup: null,
+    model: '<p>Two reasons:</p><p><strong>1. It compresses many properties into a single position.</strong> A point on the diagram simultaneously encodes T, L, R, M, spectral class, evolutionary stage, and (roughly) mass and lifetime. A table would need a column for each — and you\'d have to read them off one by one.</p><p><strong>2. It reveals patterns and stories that a table would hide.</strong> The clustering of stars into regions, the diagonal of the main sequence, the evolutionary tracks across the diagram — these show that stars aren\'t a random collection of objects but follow predictable physical paths governed by mass. <em>You see the physics, not just the data.</em></p>'
+  }
+];
+
+let walkthroughIndex = 0;
+
+function getWalkthroughAnswerKey(idx) {
+  return `hr-walkthrough-answer-${idx}`;
+}
+
+function applyWalkthroughSetup(setup) {
+  if (!setup) return;
+  // Mode switch (without recursing into walkthrough)
+  if (setup.mode && setup.mode !== currentMode) {
+    setModeInternal(setup.mode);
+  }
+  // Toggles (Explore-mode visual options) — applied even in non-explore for safety
+  if (typeof setup.regions === 'boolean') {
+    showRegions = setup.regions;
+    document.getElementById('toggleRegions').classList.toggle('active', showRegions);
+  }
+  if (typeof setup.stars === 'boolean') {
+    showStars = setup.stars;
+    document.getElementById('toggleStars').classList.toggle('active', showStars);
+  }
+  if (typeof setup.grid === 'boolean') {
+    showGrid = setup.grid;
+    document.getElementById('toggleGrid').classList.toggle('active', showGrid);
+  }
+  // Lifecycle config
+  if (setup.mass && setup.mass !== currentMass) {
+    setMass(setup.mass);
+  }
+  if (typeof setup.stage === 'number') {
+    showStage(setup.stage, false);
+  }
+  // Preset star (Explore mode)
+  if (setup.preset && PRESETS[setup.preset] && currentMode === 'explore') {
+    star.T = PRESETS[setup.preset].T;
+    star.L = PRESETS[setup.preset].L;
+  }
+  renderAll();
+}
+
+function showWalkthroughStep(index) {
+  index = Math.max(0, Math.min(WALKTHROUGH_STEPS.length - 1, index));
+  walkthroughIndex = index;
+  const step = WALKTHROUGH_STEPS[index];
+
+  document.getElementById('wtSectionNum').textContent = step.sectionNum;
+  document.getElementById('wtSectionTitle').textContent = step.sectionTitle;
+  document.getElementById('wtNum').textContent = step.label;
+  const typeEl = document.getElementById('wtType');
+  typeEl.textContent = step.type;
+  typeEl.classList.toggle('pull', !!step.isPull);
+  document.getElementById('wtProgress').textContent = `${index + 1} / ${WALKTHROUGH_STEPS.length}`;
+  document.getElementById('wtPrompt').innerHTML = step.prompt;
+  const actionEl = document.getElementById('wtAction');
+  actionEl.textContent = step.action ? `→ ${step.action}` : '';
+
+  // Hide model answer on step change
+  document.getElementById('wtModel').style.display = 'none';
+  const togBtn = document.getElementById('wtToggleAnswer');
+  togBtn.textContent = 'Show model answer';
+  togBtn.classList.remove('showing');
+  document.getElementById('wtModelBody').innerHTML = step.model || '';
+
+  // Load saved answer
+  const ta = document.getElementById('wtAnswer');
+  try { ta.value = localStorage.getItem(getWalkthroughAnswerKey(index)) || ''; }
+  catch (e) { ta.value = ''; }
+
+  // Prev/Next disabled state
+  document.getElementById('wtPrev').disabled = (index === 0);
+  document.getElementById('wtNext').disabled = (index === WALKTHROUGH_STEPS.length - 1);
+
+  // Apply step's simulation setup
+  applyWalkthroughSetup(step.setup);
+}
+
+// ============================================================
 // LIFECYCLE STATE
 // ============================================================
-let currentMode = 'explore';   // 'explore' | 'gcse' | 'alevel' | 'curious'
+let currentMode = 'explore';   // 'explore' | 'gcse' | 'alevel' | 'curious' | 'walkthrough'
+let walkthroughActive = false;
 let currentMass = '1';
 let currentStageIndex = 0;
 let isPlaying = false;
@@ -2207,13 +2789,11 @@ function getCurrentStage() {
   return stages[currentStageIndex] || stages[0];
 }
 
-function setMode(mode) {
+// Internal mode-switch — applies the simulation/UI changes for a base mode
+// (explore | gcse | alevel | curious). Used by both setMode (top-level) and
+// the walkthrough's per-step setup.
+function setModeInternal(mode) {
   currentMode = mode;
-  // Update tab UI
-  document.querySelectorAll('.mode-tabs button').forEach(b => {
-    b.classList.toggle('active', b.dataset.mode === mode);
-  });
-
   if (mode === 'explore') {
     document.getElementById('exploreToggles').style.display = '';
     document.getElementById('lifecycleBar').style.display = 'none';
@@ -2225,11 +2805,31 @@ function setMode(mode) {
     document.getElementById('lifecycleBar').style.display = '';
     document.getElementById('exploreSidePanel').style.display = 'none';
     document.getElementById('lifecycleSidePanel').style.display = '';
-    // Reset to first stage when switching modes
     currentStageIndex = 0;
     stopLifecycle();
     showStage(0, false);
   }
+}
+
+function setMode(mode) {
+  // Handle the special 'walkthrough' mode: it's a wrapper that drives a
+  // sequence of base-mode configurations from the walkthrough steps.
+  if (mode === 'walkthrough') {
+    walkthroughActive = true;
+    document.querySelectorAll('.mode-tabs button').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === 'walkthrough');
+    });
+    document.getElementById('walkthroughBanner').style.display = '';
+    showWalkthroughStep(walkthroughIndex);
+    return;
+  }
+  // Leaving walkthrough — hide banner
+  walkthroughActive = false;
+  document.getElementById('walkthroughBanner').style.display = 'none';
+  document.querySelectorAll('.mode-tabs button').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  setModeInternal(mode);
   renderAll();
 }
 
@@ -2565,6 +3165,48 @@ function init() {
   // Mode tab buttons
   document.querySelectorAll('.mode-tabs button').forEach(btn => {
     btn.onclick = () => setMode(btn.dataset.mode);
+  });
+
+  // ===== Text-size picker =====
+  const tsPicker = document.getElementById('textScalePicker');
+  function updateTextScaleUI() {
+    tsPicker.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', Math.abs(parseFloat(b.dataset.scale) - textScale) < 0.001);
+    });
+  }
+  // If no preset matches, fall back to 1.0 visually
+  if (!Array.from(tsPicker.querySelectorAll('button')).some(b => Math.abs(parseFloat(b.dataset.scale) - textScale) < 0.001)) {
+    textScale = 1.0;
+  }
+  updateTextScaleUI();
+  tsPicker.querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => {
+      textScale = parseFloat(btn.dataset.scale) || 1.0;
+      try { localStorage.setItem('hr-text-scale', String(textScale)); }
+      catch (e) { /* ignore */ }
+      updateTextScaleUI();
+      renderAll();
+    };
+  });
+
+  // ===== Walkthrough navigation =====
+  document.getElementById('wtPrev').onclick = () => {
+    if (walkthroughIndex > 0) showWalkthroughStep(walkthroughIndex - 1);
+  };
+  document.getElementById('wtNext').onclick = () => {
+    if (walkthroughIndex < WALKTHROUGH_STEPS.length - 1) showWalkthroughStep(walkthroughIndex + 1);
+  };
+  document.getElementById('wtToggleAnswer').onclick = (e) => {
+    const modelEl = document.getElementById('wtModel');
+    const showing = modelEl.style.display !== 'none';
+    modelEl.style.display = showing ? 'none' : '';
+    e.target.textContent = showing ? 'Show model answer' : 'Hide model answer';
+    e.target.classList.toggle('showing', !showing);
+  };
+  // Auto-save the student's answer to localStorage as they type
+  document.getElementById('wtAnswer').addEventListener('input', (e) => {
+    try { localStorage.setItem(getWalkthroughAnswerKey(walkthroughIndex), e.target.value); }
+    catch (err) { /* storage may be disabled — ignore */ }
   });
 
   // Mass selector
