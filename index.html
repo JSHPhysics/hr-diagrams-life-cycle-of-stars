@@ -778,8 +778,9 @@ function setupHighDPI(canvasEl, ctxRef) {
 }
 
 function setupPlotArea() {
-  // Margins inside canvas — extra space at top for spectral class, right for magnitude
-  const ml = 70, mr = 90, mt = 70, mb = 75;
+  // Margins inside canvas — extra space at top for spectral class, right for magnitude.
+  // Sized to accommodate larger axis labels (legibility on iPad-class screens).
+  const ml = 100, mr = 120, mt = 95, mb = 110;
   plotX0 = ml;
   plotY0 = mt;
   plotW = canvas._logicalWidth - ml - mr;
@@ -1021,10 +1022,10 @@ function drawLifecycleTrail() {
     ctx.arc(x, y, isCurrent ? 4 : 3, 0, Math.PI * 2);
     ctx.fill();
 
-    // Tiny label for waypoints — skip current (user star is there)
+    // Label for waypoints — skip current (user star is there)
     if (i !== currentStageIndex) {
-      ctx.fillStyle = isPast ? 'rgba(255, 232, 168, 0.85)' : 'rgba(255, 232, 168, 0.45)';
-      ctx.font = '500 10px "JetBrains Mono", monospace';
+      ctx.fillStyle = isPast ? 'rgba(255, 232, 168, 0.95)' : 'rgba(255, 232, 168, 0.6)';
+      ctx.font = '600 16px "JetBrains Mono", monospace';
 
       // Per-stage label offsets, chosen to avoid region labels and edge clipping
       const offset = getWaypointLabelOffset(s, i, x, y);
@@ -1168,7 +1169,7 @@ function drawRegions() {
 
   // ===== Region labels (drawn outside the clip so they appear cleanly) =====
   ctx.save();
-  ctx.font = '600 11px "JetBrains Mono", monospace';
+  ctx.font = '700 18px "JetBrains Mono", monospace';
   ctx.textAlign = 'center';
 
   ctx.fillStyle = 'rgba(255, 245, 220, 0.85)';
@@ -1253,8 +1254,8 @@ function drawIsoradius() {
   ctx.setLineDash([]);
 
   // Labels
-  ctx.fillStyle = 'rgba(122, 168, 255, 0.55)';
-  ctx.font = '500 10px "JetBrains Mono", monospace';
+  ctx.fillStyle = 'rgba(122, 168, 255, 0.75)';
+  ctx.font = '600 16px "JetBrains Mono", monospace';
   for (const R of radii) {
     // Place label where the line crosses T = 4500K (or thereabouts)
     const T = 3500;
@@ -1262,7 +1263,7 @@ function drawIsoradius() {
     const llog = Math.log10(L);
     if (llog < L_MIN_LOG || llog > L_MAX_LOG) continue;
     const lbl = R >= 1 ? `${R} R☉` : `${R} R☉`;
-    ctx.fillText(lbl, TtoX(T) + 4, LtoY(L) - 3);
+    ctx.fillText(lbl, TtoX(T) + 5, LtoY(L) - 4);
   }
   ctx.restore();
 }
@@ -1301,8 +1302,8 @@ function drawGrid() {
 
 function drawAxes() {
   ctx.save();
-  ctx.fillStyle = 'rgba(232, 230, 225, 0.85)';
-  ctx.font = '500 11px "JetBrains Mono", monospace';
+  ctx.fillStyle = 'rgba(232, 230, 225, 0.95)';
+  ctx.font = '600 22px "JetBrains Mono", monospace';
 
   // ---- BOTTOM X axis: Temperature (K) ----
   const tLabels = [50000, 30000, 10000, 7500, 6000, 5000, 4000, 3000, 2000];
@@ -1310,22 +1311,19 @@ function drawAxes() {
   for (const T of tLabels) {
     const x = TtoX(T);
     if (x < plotX0 - 1 || x > plotX0 + plotW + 1) continue;
-    ctx.fillText(T.toString(), x, plotY0 + plotH + 18);
+    ctx.fillText(T.toString(), x, plotY0 + plotH + 30);
   }
 
   // X axis title
-  ctx.font = '500 12px "Public Sans", sans-serif';
-  ctx.fillStyle = 'rgba(232, 230, 225, 0.95)';
-  ctx.fillText('Surface Temperature (K) — hotter ←', plotX0 + plotW / 2, plotY0 + plotH + 42);
+  ctx.font = '600 23px "Public Sans", sans-serif';
+  ctx.fillStyle = 'rgba(232, 230, 225, 1.0)';
+  ctx.fillText('Surface Temperature (K) — hotter ←', plotX0 + plotW / 2, plotY0 + plotH + 68);
 
   // ---- TOP X axis: Spectral classification (OBAFGKM) ----
-  // Draw a separator above the plot area for the class strip
   ctx.save();
-  // Tick marks at class boundaries
   ctx.strokeStyle = 'rgba(180, 190, 220, 0.5)';
   ctx.lineWidth = 1;
   for (const c of SPECTRAL_CLASSES) {
-    // Tick at the lower boundary of each class (right edge — since hot is left)
     const xLeft = TtoX(c.tMax);
     const xRight = TtoX(c.tMin);
     const xMid = (xLeft + xRight) / 2;
@@ -1340,72 +1338,68 @@ function drawAxes() {
     // Class letter centred in its strip
     if (xMid > plotX0 && xMid < plotX0 + plotW) {
       ctx.fillStyle = c.color;
-      ctx.font = '600 14px "JetBrains Mono", monospace';
+      ctx.font = '700 28px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(c.name, xMid, plotY0 - 18);
+      ctx.fillText(c.name, xMid, plotY0 - 30);
     }
   }
   // Top axis title
-  ctx.font = '500 11px "Public Sans", sans-serif';
-  ctx.fillStyle = 'rgba(232, 230, 225, 0.7)';
+  ctx.font = '500 19px "Public Sans", sans-serif';
+  ctx.fillStyle = 'rgba(232, 230, 225, 0.9)';
   ctx.textAlign = 'center';
-  ctx.fillText('Spectral classification', plotX0 + plotW / 2, plotY0 - 42);
+  ctx.fillText('Spectral classification', plotX0 + plotW / 2, plotY0 - 64);
   ctx.restore();
 
   // ---- LEFT Y axis: Luminosity (log L_sun) ----
   ctx.textAlign = 'right';
-  ctx.font = '500 11px "JetBrains Mono", monospace';
-  ctx.fillStyle = 'rgba(232, 230, 225, 0.85)';
+  ctx.font = '600 22px "JetBrains Mono", monospace';
+  ctx.fillStyle = 'rgba(232, 230, 225, 0.95)';
   for (let li = L_MIN_LOG; li <= L_MAX_LOG; li++) {
     const y = LtoY(Math.pow(10, li));
     const lbl = li === 0 ? '1' : `10${superscript(li)}`;
-    ctx.fillText(lbl, plotX0 - 6, y + 4);
+    ctx.fillText(lbl, plotX0 - 10, y + 7);
   }
 
   // Left Y axis title (rotated)
   ctx.save();
-  ctx.translate(20, plotY0 + plotH / 2);
+  ctx.translate(28, plotY0 + plotH / 2);
   ctx.rotate(-Math.PI / 2);
   ctx.textAlign = 'center';
-  ctx.font = '500 12px "Public Sans", sans-serif';
-  ctx.fillStyle = 'rgba(232, 230, 225, 0.95)';
+  ctx.font = '600 23px "Public Sans", sans-serif';
+  ctx.fillStyle = 'rgba(232, 230, 225, 1.0)';
   ctx.fillText('Luminosity (L☉, log scale)', 0, 0);
   ctx.restore();
 
   // ---- RIGHT Y axis: Absolute magnitude ----
-  // M = 4.83 - 2.5 log10(L)
-  // L axis goes from 10^-4 (bottom) to 10^6 (top), giving M from +14.83 to -10.17
-  // Use whole-number magnitude tick marks
   ctx.save();
   ctx.textAlign = 'left';
-  ctx.font = '500 11px "JetBrains Mono", monospace';
-  ctx.fillStyle = 'rgba(180, 220, 255, 0.85)';
+  ctx.font = '600 22px "JetBrains Mono", monospace';
+  ctx.fillStyle = 'rgba(180, 220, 255, 0.95)';
   const magTicks = [-10, -5, 0, 5, 10, 15];
   for (const M of magTicks) {
-    // Convert M back to L: L = 10^((M_sun - M)/2.5)
     const L = Math.pow(10, (4.83 - M) / 2.5);
     const llog = Math.log10(L);
     if (llog < L_MIN_LOG - 0.05 || llog > L_MAX_LOG + 0.05) continue;
     const y = LtoY(L);
     const lbl = M > 0 ? `+${M}` : M.toString();
-    ctx.fillText(lbl, plotX0 + plotW + 6, y + 4);
+    ctx.fillText(lbl, plotX0 + plotW + 10, y + 7);
 
     // Tick mark
     ctx.strokeStyle = 'rgba(180, 220, 255, 0.5)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(plotX0 + plotW, y);
-    ctx.lineTo(plotX0 + plotW + 4, y);
+    ctx.lineTo(plotX0 + plotW + 6, y);
     ctx.stroke();
   }
 
   // Right Y axis title (rotated)
   ctx.save();
-  ctx.translate(canvas._logicalWidth - 22, plotY0 + plotH / 2);
+  ctx.translate(canvas._logicalWidth - 28, plotY0 + plotH / 2);
   ctx.rotate(Math.PI / 2);
   ctx.textAlign = 'center';
-  ctx.font = '500 12px "Public Sans", sans-serif';
-  ctx.fillStyle = 'rgba(180, 220, 255, 0.95)';
+  ctx.font = '600 23px "Public Sans", sans-serif';
+  ctx.fillStyle = 'rgba(180, 220, 255, 1.0)';
   ctx.fillText('Absolute magnitude (M)', 0, 0);
   ctx.restore();
   ctx.restore();
@@ -1455,10 +1449,10 @@ function drawRealStars() {
     ctx.globalAlpha = 1.0;
 
     // Label — offset by the star's size so it doesn't overlap
-    ctx.fillStyle = 'rgba(232, 230, 225, 0.78)';
-    ctx.font = '500 10px "Public Sans", sans-serif';
+    ctx.fillStyle = 'rgba(232, 230, 225, 0.95)';
+    ctx.font = '600 16px "Public Sans", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(s.name, x + px + 4, y + 3);
+    ctx.fillText(s.name, x + px + 6, y + 5);
   }
   ctx.restore();
 }
